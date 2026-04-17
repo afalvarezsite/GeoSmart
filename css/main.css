@@ -26,6 +26,8 @@ body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    user-select: none; /* Desactiva la selección de texto */
+    cursor: default;   /* Evita el cursor de escritura (I-beam) sobre el texto */
 }
 
 #app {

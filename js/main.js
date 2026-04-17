@@ -1,5 +1,5 @@
 import { renderMenu } from './ui.js';
-import { state } from './state.js';
+import { state, loadSettings } from './state.js';
 import { fetchAllCountries } from './api.js';
 
 /**
@@ -7,6 +7,9 @@ import { fetchAllCountries } from './api.js';
  */
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('GeoSmart cargado correctamente');
+    
+    // Cargamos la configuración del usuario
+    loadSettings();
     
     // Mostramos el menú inmediatamente
     renderMenu();

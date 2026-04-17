@@ -7,7 +7,8 @@ import { shuffle } from '../utils.js';
  */
 export const initFlagsGame = () => {
     state.score = 0;
-    state.lives = 3;
+    state.streak = 0;
+    state.lives = state.settings.maxLives;
     generateQuestion();
 };
 
@@ -33,22 +34,35 @@ export const generateQuestion = () => {
     renderFlagQuestion(state.currentQuestion.target, state.currentQuestion.options);
 };
 
-/**
- * Evalúa la respuesta del usuario
- */
 export const handleAnswer = (selectedCca3) => {
     const isCorrect = selectedCca3 === state.currentQuestion.target.cca3;
+    let lifeRecovered = false;
     
     if (isCorrect) {
-        state.score += 10;
-        // Actualizar UI de score si existe
+        state.score += 1;
+        state.streak += 1;
+        
+        // Comprobar racha para recuperar vida
+        const threshold = state.settings.streakThreshold;
+        if (threshold > 0 && state.streak >= threshold) {
+            if (state.lives < state.settings.maxLives) {
+                state.lives += 1;
+                lifeRecovered = true;
+            }
+            state.streak = 0; // Reiniciar racha tras recuperar vida o al tope
+        }
+
         const scoreEl = document.getElementById('player-score');
         if (scoreEl) scoreEl.textContent = `Puntos: ${state.score}`;
+    } else {
+        state.lives--;
+        state.streak = 0; // Romper racha
     }
 
-    // El feedback visual se maneja en ui.js mediante clases CSS
     return {
         isCorrect,
-        correctCca3: state.currentQuestion.target.cca3
+        lifeRecovered,
+        correctCca3: state.currentQuestion.target.cca3,
+        livesRemaining: state.lives
     };
 };

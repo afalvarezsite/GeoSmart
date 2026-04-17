@@ -1,12 +1,31 @@
-import { state } from './state.js';
+import { state, saveSettings } from './state.js';
 import { initFlagsGame, handleAnswer, generateQuestion } from './modes/flags.js';
 
 const app = document.getElementById('app');
+let timerInterval = null;
+let transitionTimeout = null;
+
+/**
+ * Detiene toda la lógica activa del juego (temporizadores y transiciones)
+ */
+const stopGameLogic = () => {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    if (transitionTimeout) {
+        // Puede ser un timeout o un interval
+        clearInterval(transitionTimeout);
+        clearTimeout(transitionTimeout);
+        transitionTimeout = null;
+    }
+};
 
 /**
  * Renderiza el menú principal de selección de juegos
  */
 export const renderMenu = () => {
+    stopGameLogic();
     // Asegurar que la barra de estadísticas esté oculta en el menú
     document.getElementById('stats-bar')?.classList.add('hidden');
     
@@ -46,6 +65,12 @@ export const renderMenu = () => {
 const startGame = (mode) => {
     console.log(`Iniciando juego: ${mode}`);
     state.gameMode = mode;
+    
+    if (mode === 'flags') {
+        renderCountdown(mode);
+        return;
+    }
+
     state.view = 'game';
     
     // Mostrar barra de estadísticas
@@ -53,32 +78,310 @@ const startGame = (mode) => {
     const scoreEl = document.getElementById('player-score');
     if (scoreEl) scoreEl.textContent = `Puntos: ${state.score}`;
 
-    if (mode === 'flags') {
-        initFlagsGame();
-    } else {
-        app.innerHTML = `
-            <div class="game-container fade-in">
-                <h2>Modo: ${mode.toUpperCase()}</h2>
-                <p>Próximamente...</p>
-                <button id="btn-back" class="btn-primary">Volver al Menú</button>
-            </div>
-        `;
+    app.innerHTML = `
+        <div class="game-container fade-in">
+            <h2>Modo: ${mode.toUpperCase()}</h2>
+            <p>Próximamente...</p>
+            <button id="btn-back" class="btn-primary">Volver al Menú</button>
+        </div>
+    `;
 
-        document.getElementById('btn-back').addEventListener('click', () => {
-            state.view = 'menu';
-            renderMenu();
-        });
+    document.getElementById('btn-back').addEventListener('click', () => {
+        state.view = 'menu';
+        renderMenu();
+    });
+};
+
+/**
+ * Renderiza la cuenta regresiva antes de empezar el juego
+ */
+const renderCountdown = (mode) => {
+    stopGameLogic();
+    state.view = 'countdown';
+    document.getElementById('stats-bar')?.classList.add('hidden');
+
+    let count = 3;
+    
+    app.innerHTML = `
+        <div class="countdown-container fade-in">
+            <div id="countdown-val" class="countdown-number">${count}</div>
+            <div id="countdown-text" class="countdown-text">Prepárate...</div>
+        </div>
+    `;
+
+    const countdownVal = document.getElementById('countdown-val');
+    const countdownText = document.getElementById('countdown-text');
+
+    transitionTimeout = setInterval(() => {
+        count--;
+        
+        if (state.view !== 'countdown') {
+            stopGameLogic();
+            return;
+        }
+
+        if (count > 0) {
+            countdownVal.textContent = count;
+        } else if (count === 0) {
+            countdownVal.textContent = '¡YA!';
+            if (countdownText) countdownText.textContent = '¡Es tu turno!';
+        } else {
+            stopGameLogic();
+            
+            // Mostrar barra de estadísticas justo antes de empezar
+            document.getElementById('stats-bar')?.classList.remove('hidden');
+            const scoreEl = document.getElementById('player-score');
+            if (scoreEl) scoreEl.textContent = `Puntos: ${state.score}`;
+            
+            state.view = 'game';
+
+            if (mode === 'flags') {
+                initFlagsGame();
+            }
+        }
+    }, 1000);
+};
+
+/**
+ * Renderiza los corazones de vida actuales
+ */
+const renderLives = () => {
+    const totalLives = state.settings.maxLives; // Usamos el máximo configurado
+    let hearts = '';
+    for (let i = 0; i < totalLives; i++) {
+        if (i < state.lives) {
+            hearts += `<img src="assets/pixel_heart.svg" class="life-heart" alt="Vida">`;
+        } else {
+            hearts += `<img src="assets/pixel_heart_empty.svg" class="life-heart empty" alt="Vida perdida">`;
+        }
     }
+    return hearts;
+};
+
+/**
+ * Renderiza la pantalla de configuración
+ */
+export const renderSettings = () => {
+    stopGameLogic();
+    state.view = 'settings';
+    document.getElementById('stats-bar')?.classList.add('hidden');
+
+    app.innerHTML = `
+        <div class="settings-container fade-in">
+            <h2 class="menu-title">Configuración</h2>
+            
+            <div class="settings-card">
+                <div class="setting-group">
+                    <label for="max-lives">
+                        Número de Vidas
+                        <span>(Define cuántos fallos se permiten antes de perder)</span>
+                    </label>
+                    <div class="input-row">
+                        <input type="range" id="max-lives" class="custom-range" min="1" max="10" value="${state.settings.maxLives}">
+                        <span id="lives-value" class="value-display">${state.settings.maxLives}</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label for="question-time">
+                        Tiempo por Bandera
+                        <span>(Segundos disponibles para responder)</span>
+                    </label>
+                    <div class="input-row">
+                        <input type="range" id="question-time" class="custom-range" min="3" max="16" value="${state.settings.questionTime}">
+                        <span id="time-value" class="value-display">${state.settings.questionTime === 16 ? '∞' : state.settings.questionTime + 's'}</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label for="streak-threshold">
+                        Racha para Recuperar Vida
+                        <span>(Aciertos seguidos para ganar +1 vida. 0 = Desactivado)</span>
+                    </label>
+                    <div class="input-row">
+                        <input type="range" id="streak-threshold" class="custom-range" min="0" max="10" value="${state.settings.streakThreshold}">
+                        <span id="streak-value" class="value-display">${state.settings.streakThreshold || 'OFF'}</span>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button id="btn-save-settings" class="btn-primary btn-large">Guardar Cambios</button>
+                    <button id="btn-cancel-settings" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const livesInput = document.getElementById('max-lives');
+    const livesValue = document.getElementById('lives-value');
+    const timeInput = document.getElementById('question-time');
+    const timeValue = document.getElementById('time-value');
+    const streakInput = document.getElementById('streak-threshold');
+    const streakValue = document.getElementById('streak-value');
+    
+    livesInput.addEventListener('input', (e) => {
+        livesValue.textContent = e.target.value;
+    });
+
+    timeInput.addEventListener('input', (e) => {
+        timeValue.textContent = e.target.value === "16" ? '∞' : `${e.target.value}s`;
+    });
+
+    streakInput.addEventListener('input', (e) => {
+        streakValue.textContent = e.target.value === "0" ? 'OFF' : e.target.value;
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+        const newMaxLives = parseInt(livesInput.value);
+        const newQuestionTime = parseInt(timeInput.value);
+        const newStreakThreshold = parseInt(streakInput.value);
+        saveSettings({ 
+            maxLives: newMaxLives,
+            questionTime: newQuestionTime,
+            streakThreshold: newStreakThreshold
+        });
+        renderMenu();
+    });
+
+    document.getElementById('btn-cancel-settings').addEventListener('click', () => {
+        renderMenu();
+    });
+};
+
+/**
+ * Renderiza la pantalla de fin de juego
+ */
+export const renderGameOver = () => {
+    state.view = 'results';
+    // Ocultar barra de estadísticas en el game over para limpieza visual
+    document.getElementById('stats-bar')?.classList.add('hidden');
+    
+    app.innerHTML = `
+        <div class="game-container fade-in text-center">
+            <h2 class="game-over-title">¡Desafío Terminado!</h2>
+            <div class="score-summary">
+                <p>Puntuación Final</p>
+                <div class="final-score">${state.score}</div>
+            </div>
+            <div class="results-actions">
+                <button id="btn-restart" class="btn-primary btn-large">Reintentar</button>
+                <button id="btn-back-menu" class="btn-secondary">Volver al Menú</button>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        initFlagsGame();
+    });
+
+    document.getElementById('btn-back-menu').addEventListener('click', () => {
+        state.view = 'menu';
+        renderMenu();
+    });
+};
+
+/**
+ * Inicia el temporizador para la pregunta actual
+ */
+const startTimer = (correctCca3) => {
+    const timerBar = document.getElementById('timer-bar');
+    if (!timerBar) return;
+
+    let timeLeft = state.settings.questionTime * 1000;
+    const totalTime = timeLeft;
+    const intervalTime = 50; // Actualización cada 50ms para suavidad
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+        timeLeft -= intervalTime;
+        const percentage = (timeLeft / totalTime) * 100;
+        
+        if (timerBar) {
+            timerBar.style.width = `${percentage}%`;
+            
+            // Cambiar color según el tiempo restante
+            if (percentage > 60) {
+                timerBar.style.background = 'linear-gradient(to right, #10b981, #059669)'; // Verde
+                timerBar.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
+            } else if (percentage > 30) {
+                timerBar.style.background = 'linear-gradient(to right, #facc15, #eab308)'; // Amarillo
+                timerBar.style.boxShadow = '0 0 15px rgba(234, 179, 8, 0.4)';
+            } else {
+                timerBar.style.background = 'linear-gradient(to right, #ef4444, #dc2626)'; // Rojo
+                timerBar.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
+            }
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimeout(correctCca3);
+        }
+    }, intervalTime);
+};
+
+/**
+ * Maneja el evento de tiempo agotado
+ */
+const handleTimeout = (correctCca3) => {
+    // Desactivar botones
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(b => b.disabled = true);
+
+    // Ejecutar lógica de fallo por tiempo
+    const { correctCca3: correct, lifeRecovered } = handleAnswer(null);
+
+    // Feedback visual
+    const livesDisplay = document.getElementById('lives-display');
+    if (livesDisplay) {
+        livesDisplay.innerHTML = renderLives();
+        
+        if (lifeRecovered) {
+            showLifeUpFeedback();
+        }
+    }
+
+    // Mostrar cual era la correcta
+    const correctBtn = document.querySelector(`[data-cca3="${correct}"]`);
+    correctBtn?.classList.add('btn-correct');
+
+    // Pausa y siguiente paso
+    transitionTimeout = setTimeout(() => {
+        if (state.view !== 'game') return; // Seguridad extra
+        
+        if (state.lives <= 0) {
+            renderGameOver();
+        } else {
+            generateQuestion();
+        }
+    }, 2000);
 };
 
 /**
  * Renderiza una pregunta del juego de banderas
  */
 export const renderFlagQuestion = (target, options) => {
+    // Limpiar cualquier lógica previa
+    stopGameLogic();
+
+    const isIndefinite = state.settings.questionTime === 16;
+
     app.innerHTML = `
         <div class="game-container fade-in">
+            <div id="lives-display" class="lives-container">
+                ${renderLives()}
+            </div>
+
+            <div id="life-up-notification" class="life-up-container"></div>
+
+            ${!isIndefinite ? `
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            ` : ''}
+
             <div class="flag-display-container">
-                <img src="${target.flags.svg}" alt="Bandera a adivinar" class="flag-display shadow-lg">
+                <img src="${target.flags.svg}" alt="Bandera a adivinar" class="flag-display">
             </div>
             
             <div class="options-grid">
@@ -91,31 +394,86 @@ export const renderFlagQuestion = (target, options) => {
         </div>
     `;
 
+    // Iniciar temporizador solo si no es indefinido
+    if (!isIndefinite) {
+        startTimer(target.cca3);
+    }
+
     const buttons = document.querySelectorAll('.option-btn');
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
+            // Detener temporizador inmediatamente al responder
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
             // Desactiva todos los botones después del click
             buttons.forEach(b => b.disabled = true);
             
             const selectedCca3 = btn.getAttribute('data-cca3');
-            const { isCorrect, correctCca3 } = handleAnswer(selectedCca3);
+            const { isCorrect, correctCca3, lifeRecovered } = handleAnswer(selectedCca3);
             
             // Feedback visual
             if (isCorrect) {
                 btn.classList.add('btn-correct');
+                
+                // Si recuperó vida por racha, actualizar corazones
+                if (lifeRecovered) {
+                    const livesDisplay = document.getElementById('lives-display');
+                    if (livesDisplay) {
+                        livesDisplay.innerHTML = renderLives();
+                        showLifeUpFeedback();
+                    }
+                }
             } else {
                 btn.classList.add('btn-incorrect');
+                
+                // Actualizar vidas visualmente de inmediato
+                const livesDisplay = document.getElementById('lives-display');
+                if (livesDisplay) {
+                    livesDisplay.innerHTML = renderLives();
+                }
+
                 // Mostrar la correcta
                 const correctBtn = document.querySelector(`[data-cca3="${correctCca3}"]`);
                 correctBtn?.classList.add('btn-correct');
             }
 
-            // Pausa y siguiente pregunta
-            setTimeout(() => {
-                generateQuestion();
+            // Pausa y siguiente paso (pregunta o fin)
+            transitionTimeout = setTimeout(() => {
+                if (state.view !== 'game') return; // Seguridad extra
+                
+                if (state.lives <= 0) {
+                    renderGameOver();
+                } else {
+                    generateQuestion();
+                }
             }, 2000);
         });
     });
+};
+
+/**
+ * Muestra un feedback visual de vida recuperada
+ */
+const showLifeUpFeedback = () => {
+    const container = document.getElementById('life-up-notification');
+    if (!container) return;
+
+    const el = document.createElement('div');
+    el.className = 'life-up-feedback';
+    el.innerHTML = `
+        <img src="assets/pixel_heart.svg" class="mini-heart">
+        <span>+1 VIDA</span>
+    `;
+    
+    container.appendChild(el);
+    
+    // Limpiar el elemento después de la animación
+    setTimeout(() => {
+        el.remove();
+    }, 2000);
 };
 
 // Listeners para el Header (Navigation)
@@ -123,6 +481,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnMenu = document.getElementById('btn-menu');
     if (btnMenu) {
         btnMenu.addEventListener('click', () => {
+            state.view = 'menu';
+            renderMenu();
+        });
+    }
+
+    const btnSettings = document.getElementById('btn-settings');
+    if (btnSettings) {
+        btnSettings.addEventListener('click', () => {
+            renderSettings();
+        });
+    }
+
+    const btnNewGame = document.getElementById('btn-new-game');
+    if (btnNewGame) {
+        btnNewGame.addEventListener('click', () => {
             state.view = 'menu';
             renderMenu();
         });
