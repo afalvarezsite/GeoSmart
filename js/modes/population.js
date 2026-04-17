@@ -9,32 +9,80 @@ export const initPopulationGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
+    state.history = []; // Limpiamos el historial de la sesión
     generatePopulationQuestion();
 };
 
 /**
- * Genera una nueva pregunta (compara 2 países)
+ * Genera una nueva pregunta (compara 2 países de similar extensión)
  */
 export const generatePopulationQuestion = () => {
     if (state.countries.length < 2) return;
 
-    // Seleccionamos 2 países aleatorios
-    // Intentamos que no tengan exactamente la misma población si es posible, 
-    // aunque es raro en la API REST Countries
-    const randomCountries = shuffle(state.countries).slice(0, 2);
+    // 1. Crear una lista de países válidos ordenada por extensión
+    const validCountries = state.countries
+        .filter(c => c.population !== undefined && c.area !== undefined)
+        .sort((a, b) => a.area - b.area);
+
+    if (validCountries.length < 2) return;
+
+    let countryA, countryB, pairKey;
+    let attempts = 0;
+    const maxGlobalAttempts = 15;
+
+    // 2. Intentar generar una pareja que no esté en el historial reciente
+    do {
+        const indexA = Math.floor(Math.random() * validCountries.length);
+        countryA = validCountries[indexA];
+        
+        const isChaosSelection = Math.random() < 0.05;
+
+        if (isChaosSelection) {
+            do {
+                const randomIdx = Math.floor(Math.random() * validCountries.length);
+                countryB = validCountries[randomIdx];
+            } while (countryB.cca3 === countryA.cca3);
+        } else {
+            const range = 8; 
+            const minIdx = Math.max(0, indexA - range);
+            const maxIdx = Math.min(validCountries.length - 1, indexA + range);
+            
+            let indexB;
+            let neighborAttempts = 0;
+            do {
+                indexB = Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
+                neighborAttempts++;
+            } while (indexB === indexA && neighborAttempts < 10);
+            
+            countryB = validCountries[indexB];
+        }
+
+        // Crear una clave única para la pareja (ordenada alfabéticamente)
+        pairKey = [countryA.cca3, countryB.cca3].sort().join('_');
+        attempts++;
+
+        // Si ya está en el historial, reintentamos hasta maxGlobalAttempts veces
+    } while (state.history.includes(pairKey) && attempts < maxGlobalAttempts);
+
+    // Guardar en el historial (manteniendo solo los últimos 40 para no quedarse sin opciones)
+    state.history.push(pairKey);
+    if (state.history.length > 40) state.history.shift();
     
-    // Determinamos el ganador (el de mayor población)
-    const winner = randomCountries[0].population >= randomCountries[1].population 
-        ? randomCountries[0] 
-        : randomCountries[1];
+    // Mezclamos el par para la UI
+    const pair = shuffle([countryA, countryB]);
     
-    // Guardamos la pregunta actual en el estado
+    // Determinamos el ganador
+    const winner = pair[0].population >= pair[1].population 
+        ? pair[0] 
+        : pair[1];
+    
+    // Guardamos la pregunta actual
     state.currentQuestion = {
-        options: randomCountries,
+        options: pair,
         winner: winner
     };
 
-    // Renderizamos la pregunta (esta función se definirá en ui.js)
+    // Renderizamos la pregunta
     renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
 };
 

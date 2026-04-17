@@ -1,4 +1,5 @@
-import { state, saveSettings } from './state.js';
+import { state, saveSettings, resetSettings } from './state.js';
+import { formatCurrency } from './utils.js';
 import { initFlagsGame, handleAnswer as handleFlagsAnswer, generateQuestion as generateFlagsQuestion } from './modes/flags.js';
 import { initCapitalsGame, handleCapitalAnswer, generateCapitalQuestion } from './modes/capitals.js';
 import { initPopulationGame, handlePopulationAnswer, generatePopulationQuestion } from './modes/population.js';
@@ -177,58 +178,76 @@ export const renderSettings = () => {
             <h2 class="menu-title">Configuración</h2>
             
             <div class="settings-card">
-                <div class="setting-group">
-                    <label for="max-lives">
-                        Número de Vidas
-                        <span>(Define cuántos fallos se permiten antes de perder)</span>
-                    </label>
-                    <div class="input-row">
-                        <input type="range" id="max-lives" class="custom-range" min="1" max="10" value="${state.settings.maxLives}">
-                        <span id="lives-value" class="value-display">${state.settings.maxLives}</span>
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Generales</h3>
+                    <div class="setting-group">
+                        <label for="max-lives">
+                            Número de Vidas
+                            <span>(Define cuántos fallos se permiten antes de perder)</span>
+                        </label>
+                        <div class="input-row">
+                            <input type="range" id="max-lives" class="custom-range" min="1" max="10" value="${state.settings.maxLives}">
+                            <span id="lives-value" class="value-display">${state.settings.maxLives}</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="question-time">
+                            Tiempo por Bandera
+                            <span>(Segundos disponibles para responder)</span>
+                        </label>
+                        <div class="input-row">
+                            <input type="range" id="question-time" class="custom-range" min="3" max="16" value="${state.settings.questionTime}">
+                            <span id="time-value" class="value-display">${state.settings.questionTime === 16 ? '∞' : state.settings.questionTime + 's'}</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="streak-threshold">
+                            Racha para Recuperar Vida
+                            <span>(Aciertos seguidos para ganar +1 vida. 0 = Desactivado)</span>
+                        </label>
+                        <div class="input-row">
+                            <input type="range" id="streak-threshold" class="custom-range" min="0" max="10" value="${state.settings.streakThreshold}">
+                            <span id="streak-value" class="value-display">${state.settings.streakThreshold || 'OFF'}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="setting-group">
-                    <label for="question-time">
-                        Tiempo por Bandera
-                        <span>(Segundos disponibles para responder)</span>
-                    </label>
-                    <div class="input-row">
-                        <input type="range" id="question-time" class="custom-range" min="3" max="16" value="${state.settings.questionTime}">
-                        <span id="time-value" class="value-display">${state.settings.questionTime === 16 ? '∞' : state.settings.questionTime + 's'}</span>
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Modo Capitales</h3>
+                    <div class="setting-group flex-between">
+                        <label for="show-flag-capitals">
+                            Mostrar Bandera en Capitales
+                            <span>(Ayuda visual adicional para identificar el país)</span>
+                        </label>
+                        <input type="checkbox" id="show-flag-capitals" class="neo-switch" ${state.settings.showFlagInCapitals ? 'checked' : ''}>
                     </div>
                 </div>
 
-                <div class="setting-group">
-                    <label for="streak-threshold">
-                        Racha para Recuperar Vida
-                        <span>(Aciertos seguidos para ganar +1 vida. 0 = Desactivado)</span>
-                    </label>
-                    <div class="input-row">
-                        <input type="range" id="streak-threshold" class="custom-range" min="0" max="10" value="${state.settings.streakThreshold}">
-                        <span id="streak-value" class="value-display">${state.settings.streakThreshold || 'OFF'}</span>
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Modo Población</h3>
+                    <div class="setting-group flex-between">
+                        <label for="show-area-population">
+                            Mostrar Extensión en Población
+                            <span>(Muestra los km² para ayudar a comparar)</span>
+                        </label>
+                        <input type="checkbox" id="show-area-population" class="neo-switch" ${state.settings.showAreaInPopulation ? 'checked' : ''}>
                     </div>
-                </div>
 
-                <div class="setting-group flex-between">
-                    <label for="show-flag-capitals">
-                        Mostrar Bandera en Capitales
-                        <span>(Ayuda visual adicional para identificar el país)</span>
-                    </label>
-                    <input type="checkbox" id="show-flag-capitals" class="neo-switch" ${state.settings.showFlagInCapitals ? 'checked' : ''}>
-                </div>
-
-                <div class="setting-group flex-between">
-                    <label for="show-area-population">
-                        Mostrar Extensión en Población
-                        <span>(Muestra los km² para ayudar a comparar)</span>
-                    </label>
-                    <input type="checkbox" id="show-area-population" class="neo-switch" ${state.settings.showAreaInPopulation ? 'checked' : ''}>
+                    <div class="setting-group flex-between">
+                        <label for="show-gdp-population">
+                            Mostrar PIB en Población
+                            <span>(Muestra el PIB del Banco Mundial)</span>
+                        </label>
+                        <input type="checkbox" id="show-gdp-population" class="neo-switch" ${state.settings.showGDPInPopulation ? 'checked' : ''}>
+                    </div>
                 </div>
 
                 <div class="settings-actions">
                     <button id="btn-save-settings" class="btn-primary btn-large">Guardar Cambios</button>
                     <button id="btn-cancel-settings" class="btn-secondary">Cancelar</button>
+                    <button id="btn-reset-settings" class="btn-danger">Restaurar Defectos</button>
                 </div>
             </div>
         </div>
@@ -242,6 +261,7 @@ export const renderSettings = () => {
     const streakValue = document.getElementById('streak-value');
     const flagToggle = document.getElementById('show-flag-capitals');
     const areaToggle = document.getElementById('show-area-population');
+    const gdpToggle = document.getElementById('show-gdp-population');
     
     livesInput.addEventListener('input', (e) => {
         livesValue.textContent = e.target.value;
@@ -261,14 +281,23 @@ export const renderSettings = () => {
         const newStreakThreshold = parseInt(streakInput.value);
         const newShowFlag = flagToggle.checked;
         const newShowArea = areaToggle.checked;
+        const newShowGDP = gdpToggle.checked;
         saveSettings({ 
             maxLives: newMaxLives,
             questionTime: newQuestionTime,
             streakThreshold: newStreakThreshold,
             showFlagInCapitals: newShowFlag,
-            showAreaInPopulation: newShowArea
+            showAreaInPopulation: newShowArea,
+            showGDPInPopulation: newShowGDP
         });
         renderMenu();
+    });
+
+    document.getElementById('btn-reset-settings').addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que deseas restaurar la configuración por defecto?')) {
+            resetSettings();
+            renderSettings(); // Re-renderizar para ver los cambios
+        }
     });
 
     document.getElementById('btn-cancel-settings').addEventListener('click', () => {
@@ -628,12 +657,18 @@ export const renderPopulationQuestion = (options, winner) => {
                             ` : ''}
                             <div class="info-badge">
                                 <span class="label">Continente:</span>
-                                <span class="value">${country.continents ? country.continents[0] : 'N/A'}</span>
+                                <span class="value">${country.continentesEs ? country.continentesEs[0] : 'N/A'}</span>
                             </div>
                             <div class="info-badge">
                                 <span class="label">Subregión:</span>
-                                <span class="value">${country.subregion || 'N/A'}</span>
+                                <span class="value">${country.subregionEs || 'N/A'}</span>
                             </div>
+                            ${state.settings.showGDPInPopulation ? `
+                            <div class="info-badge">
+                                <span class="label">PIB:</span>
+                                <span class="value">${formatCurrency(country.pib)}</span>
+                            </div>
+                            ` : ''}
                         </div>
                         <div class="population-reveal hidden">
                             <span class="pop-number">${country.population.toLocaleString()}</span> habitantes

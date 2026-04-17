@@ -1,6 +1,12 @@
-/**
- * Estado global de la aplicación
- */
+export const DEFAULT_SETTINGS = {
+    maxLives: 3,
+    questionTime: 7,
+    streakThreshold: 5,
+    showFlagInCapitals: true,
+    showAreaInPopulation: false,
+    showGDPInPopulation: false
+};
+
 export const state = {
     view: 'menu', // 'menu', 'game', 'results', 'settings'
     gameMode: null, // 'flags', 'capitals', 'population', 'currency'
@@ -10,13 +16,7 @@ export const state = {
     countries: [],
     currentQuestion: null,
     history: [],
-    settings: {
-        maxLives: 3,
-        questionTime: 7,
-        streakThreshold: 5,
-        showFlagInCapitals: true,
-        showAreaInPopulation: false
-    }
+    settings: { ...DEFAULT_SETTINGS }
 };
 
 /**
@@ -39,6 +39,14 @@ export const loadSettings = () => {
 export const saveSettings = (newSettings) => {
     state.settings = { ...state.settings, ...newSettings };
     localStorage.setItem('geosmart_settings', JSON.stringify(state.settings));
+};
+
+/**
+ * Restaura los ajustes por defecto
+ */
+export const resetSettings = () => {
+    state.settings = { ...DEFAULT_SETTINGS };
+    localStorage.removeItem('geosmart_settings');
 };
 
 /**
