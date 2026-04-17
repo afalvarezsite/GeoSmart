@@ -9,29 +9,32 @@ export const initFlagsGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
-    generateQuestion();
+    
+    // Si no hay una pregunta pre-generada, la generamos ahora
+    if (!state.currentQuestion) {
+        generateQuestion(false);
+    }
+    
+    renderFlagQuestion(state.currentQuestion.target, state.currentQuestion.options);
 };
 
 /**
  * Genera una nueva pregunta
  */
-export const generateQuestion = () => {
+export const generateQuestion = (render = true) => {
     if (state.countries.length < 4) return;
 
-    // Seleccionamos 4 países aleatorios
     const randomCountries = shuffle(state.countries).slice(0, 4);
-    
-    // El objetivo es el primero de los 4 (o cualquiera, ya que están mezclados)
     const target = randomCountries[0];
     
-    // Guardamos la pregunta actual en el estado
     state.currentQuestion = {
         target: target,
-        options: shuffle(randomCountries) // Mezclamos las opciones para que el correcto no sea siempre el primero
+        options: shuffle(randomCountries)
     };
 
-    // Renderizamos la pregunta con la URL SVG
-    renderFlagQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    if (render) {
+        renderFlagQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    }
 };
 
 export const handleAnswer = (selectedCca3) => {

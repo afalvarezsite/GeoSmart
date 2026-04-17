@@ -9,32 +9,32 @@ export const initCapitalsGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
-    generateCapitalQuestion();
+    
+    if (!state.currentQuestion) {
+        generateCapitalQuestion(false);
+    }
+    
+    renderCapitalQuestion(state.currentQuestion.target, state.currentQuestion.options);
 };
 
 /**
  * Genera una nueva pregunta de capitales
  */
-export const generateCapitalQuestion = () => {
-    // Filtrar países que tengan capital definida
+export const generateCapitalQuestion = (render = true) => {
     const validCountries = state.countries.filter(c => c.capital && c.capital.length > 0);
-    
     if (validCountries.length < 4) return;
 
-    // Seleccionamos 4 países aleatorios
     const randomCountries = shuffle(validCountries).slice(0, 4);
-    
-    // El objetivo es el primero
     const target = randomCountries[0];
     
-    // Guardamos la pregunta actual en el estado
     state.currentQuestion = {
         target: target,
         options: shuffle(randomCountries)
     };
 
-    // Renderizamos la pregunta enviando el país objetivo y las opciones (países completos)
-    renderCapitalQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    if (render) {
+        renderCapitalQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    }
 };
 
 /**

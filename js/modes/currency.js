@@ -9,27 +9,25 @@ export const initCurrencyGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
-    generateCurrencyQuestion();
+    
+    if (!state.currentQuestion) {
+        generateCurrencyQuestion(false);
+    }
+    
+    renderCurrencyQuestion(state.currentQuestion.target, state.currentQuestion.options);
 };
 
 /**
  * Genera una nueva pregunta de monedas
  */
-export const generateCurrencyQuestion = () => {
-    // Filtrar países que tengan monedas definidas
+export const generateCurrencyQuestion = (render = true) => {
     const validCountries = state.countries.filter(c => c.currencies && Object.keys(c.currencies).length > 0);
-    
     if (validCountries.length < 4) return;
 
-    // Seleccionamos un país objetivo
     const target = shuffle(validCountries)[0];
     const targetCurrency = getCurrencyString(target);
-    
-    // Lista de opciones (empezamos con la correcta)
     const options = [target];
     const seenCurrencies = new Set([targetCurrency]);
-    
-    // Buscamos 3 países más que tengan monedas diferentes
     const otherCountries = shuffle(validCountries.filter(c => c.cca3 !== target.cca3));
     
     for (const country of otherCountries) {
@@ -41,7 +39,6 @@ export const generateCurrencyQuestion = () => {
         }
     }
     
-    // Si por alguna razón no encontramos suficientes (muy improbable), fallback al método anterior
     if (options.length < 4) {
         const fallback = shuffle(validCountries).slice(0, 4);
         state.currentQuestion = { target: fallback[0], options: shuffle(fallback) };
@@ -52,8 +49,9 @@ export const generateCurrencyQuestion = () => {
         };
     }
 
-    // Renderizamos la pregunta
-    renderCurrencyQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    if (render) {
+        renderCurrencyQuestion(state.currentQuestion.target, state.currentQuestion.options);
+    }
 };
 
 /**

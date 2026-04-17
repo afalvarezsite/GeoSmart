@@ -165,6 +165,21 @@ const renderCountdown = (mode) => {
     const countdownVal = document.getElementById('countdown-val');
     const countdownText = document.getElementById('countdown-text');
 
+    // Pre-generar la primera pregunta y pre-cargar assets
+    if (mode === 'flags') generateFlagsQuestion(false);
+    else if (mode === 'capitals') generateCapitalQuestion(false);
+    else if (mode === 'population') generatePopulationQuestion(false);
+    else if (mode === 'currency') generateCurrencyQuestion(false);
+
+    // Pre-cargar banderas de la primera pregunta
+    if (state.currentQuestion) {
+        if (state.currentQuestion.target) {
+            preloadFlag(state.currentQuestion.target.flags.svg);
+        } else if (state.currentQuestion.options) {
+            state.currentQuestion.options.forEach(opt => preloadFlag(opt.flags.svg));
+        }
+    }
+
     transitionTimeout = setInterval(() => {
         count--;
         
@@ -181,22 +196,16 @@ const renderCountdown = (mode) => {
         } else {
             stopGameLogic();
             
-            // Mostrar barra de estadísticas justo antes de empezar
             document.getElementById('stats-bar')?.classList.remove('hidden');
             const scoreEl = document.getElementById('player-score');
             if (scoreEl) scoreEl.textContent = `Puntos: ${state.score}`;
             
             state.view = 'game';
 
-            if (mode === 'flags') {
-                initFlagsGame();
-            } else if (mode === 'capitals') {
-                initCapitalsGame();
-            } else if (mode === 'population') {
-                initPopulationGame();
-            } else if (mode === 'currency') {
-                initCurrencyGame();
-            }
+            if (mode === 'flags') initFlagsGame();
+            else if (mode === 'capitals') initCapitalsGame();
+            else if (mode === 'population') initPopulationGame();
+            else if (mode === 'currency') initCurrencyGame();
         }
     }, 1000);
 };
@@ -628,6 +637,14 @@ export const renderFlagQuestion = (target, options) => {
             if (state.lives <= 0) renderGameOver();
             else generateFlagsQuestion();
         }, 2000);
+
+        // Pre-generar siguiente pregunta mientras se ve el feedback
+        if (state.lives > 0) {
+            generateFlagsQuestion(false);
+            if (state.currentQuestion?.target) {
+                preloadFlag(state.currentQuestion.target.flags.svg);
+            }
+        }
     });
 };
 
@@ -714,6 +731,14 @@ export const renderCapitalQuestion = (target, options) => {
             if (state.lives <= 0) renderGameOver();
             else generateCapitalQuestion();
         }, 2000);
+
+        // Pre-generar siguiente pregunta
+        if (state.lives > 0) {
+            generateCapitalQuestion(false);
+            if (state.currentQuestion?.target) {
+                preloadFlag(state.currentQuestion.target.flags.svg);
+            }
+        }
     });
 };
 
@@ -826,6 +851,14 @@ export const renderPopulationQuestion = (options, winner) => {
             if (state.lives <= 0) renderGameOver();
             else generatePopulationQuestion();
         }, 3000);
+
+        // Pre-generar siguiente pregunta
+        if (state.lives > 0) {
+            generatePopulationQuestion(false);
+            if (state.currentQuestion?.options) {
+                state.currentQuestion.options.forEach(opt => preloadFlag(opt.flags.svg));
+            }
+        }
     });
 };
 
@@ -925,6 +958,14 @@ export const renderCurrencyQuestion = (target, options) => {
             if (state.lives <= 0) renderGameOver();
             else generateCurrencyQuestion();
         }, 2000);
+
+        // Pre-generar siguiente pregunta
+        if (state.lives > 0) {
+            generateCurrencyQuestion(false);
+            if (state.currentQuestion?.target) {
+                preloadFlag(state.currentQuestion.target.flags.svg);
+            }
+        }
     });
 };
 

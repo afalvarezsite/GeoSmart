@@ -9,17 +9,21 @@ export const initPopulationGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
-    state.history = []; // Limpiamos el historial de la sesión
-    generatePopulationQuestion();
+    state.history = [];
+    
+    if (!state.currentQuestion) {
+        generatePopulationQuestion(false);
+    }
+    
+    renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
 };
 
 /**
  * Genera una nueva pregunta (compara 2 países de similar extensión)
  */
-export const generatePopulationQuestion = () => {
+export const generatePopulationQuestion = (render = true) => {
     if (state.countries.length < 2) return;
 
-    // 1. Filtrar países válidos y ordenar por extensión
     const validCountries = state.countries
         .filter(c => c.population !== undefined && c.area !== undefined)
         .sort((a, b) => a.area - b.area);
@@ -30,43 +34,34 @@ export const generatePopulationQuestion = () => {
     let attempts = 0;
     const MAX_ATTEMPTS = 15;
 
-    // 2. Intentar generar una pareja que no esté en el historial reciente
     do {
         const indexA = Math.floor(Math.random() * validCountries.length);
         countryA = validCountries[indexA];
-        
-        // Decisión: ¿Selección vecina (difícil) o caos (aleatorio)?
         const isChaos = Math.random() < 0.05;
 
         if (isChaos) {
-            // Seleccionar cualquiera excepto el mismo
             let indexB;
             do {
                 indexB = Math.floor(Math.random() * validCountries.length);
             } while (indexB === indexA);
             countryB = validCountries[indexB];
         } else {
-            // Seleccionar un "vecino" en la lista ordenada por área (similar tamaño)
             const RANGE = 8; 
             const minIdx = Math.max(0, indexA - RANGE);
             const maxIdx = Math.min(validCountries.length - 1, indexA + RANGE);
-            
             let indexB;
             let neighborAttempts = 0;
             do {
                 indexB = Math.floor(Math.random() * (maxIdx - minIdx + 1)) + minIdx;
                 neighborAttempts++;
             } while (indexB === indexA && neighborAttempts < 10);
-            
             countryB = validCountries[indexB];
         }
 
         pairKey = [countryA.cca3, countryB.cca3].sort().join('_');
         attempts++;
-
     } while (state.history.includes(pairKey) && attempts < MAX_ATTEMPTS);
 
-    // 3. Actualizar historial
     state.history.push(pairKey);
     if (state.history.length > 40) state.history.shift();
     
@@ -75,13 +70,14 @@ export const generatePopulationQuestion = () => {
     
     state.currentQuestion = { options: pair, winner: winner };
 
-    // Seguridad final
     if (!pair[0] || !pair[1]) {
         console.error('Fallo crítico en generación de pareja');
-        return generatePopulationQuestion();
+        return generatePopulationQuestion(render);
     }
 
-    renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
+    if (render) {
+        renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
+    }
 };
 
 /**
