@@ -4,7 +4,9 @@ export const DEFAULT_SETTINGS = {
     streakThreshold: 5,
     showFlagInCapitals: true,
     showAreaInPopulation: false,
-    showGDPInPopulation: false
+    showGDPInPopulation: false,
+    showFlagInCurrency: true,
+    showDetailsInCurrency: true
 };
 
 export const state = {

@@ -3,6 +3,7 @@ import { formatCurrency } from './utils.js';
 import { initFlagsGame, handleAnswer as handleFlagsAnswer, generateQuestion as generateFlagsQuestion } from './modes/flags.js';
 import { initCapitalsGame, handleCapitalAnswer, generateCapitalQuestion } from './modes/capitals.js';
 import { initPopulationGame, handlePopulationAnswer, generatePopulationQuestion } from './modes/population.js';
+import { initCurrencyGame, handleCurrencyAnswer, generateCurrencyQuestion, getCurrencyString } from './modes/currency.js';
 
 const app = document.getElementById('app');
 let timerInterval = null;
@@ -69,7 +70,7 @@ const startGame = (mode) => {
     console.log(`Iniciando juego: ${mode}`);
     state.gameMode = mode;
     
-    if (mode === 'flags' || mode === 'capitals' || mode === 'population') {
+    if (mode === 'flags' || mode === 'capitals' || mode === 'population' || mode === 'currency') {
         renderCountdown(mode);
         return;
     }
@@ -144,6 +145,8 @@ const renderCountdown = (mode) => {
                 initCapitalsGame();
             } else if (mode === 'population') {
                 initPopulationGame();
+            } else if (mode === 'currency') {
+                initCurrencyGame();
             }
         }
     }, 1000);
@@ -244,6 +247,25 @@ export const renderSettings = () => {
                     </div>
                 </div>
 
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Modo Monedas</h3>
+                    <div class="setting-group flex-between">
+                        <label for="show-flag-currency">
+                            Mostrar Bandera en Monedas
+                            <span>(Identifica el país más fácilmente)</span>
+                        </label>
+                        <input type="checkbox" id="show-flag-currency" class="neo-switch" ${state.settings.showFlagInCurrency ? 'checked' : ''}>
+                    </div>
+
+                    <div class="setting-group flex-between">
+                        <label for="show-details-currency">
+                            Mostrar Detalles Geográficos
+                            <span>(Continente y subregión como pista extra)</span>
+                        </label>
+                        <input type="checkbox" id="show-details-currency" class="neo-switch" ${state.settings.showDetailsInCurrency ? 'checked' : ''}>
+                    </div>
+                </div>
+
                 <div class="settings-actions">
                     <button id="btn-save-settings" class="btn-primary btn-large">Guardar Cambios</button>
                     <button id="btn-cancel-settings" class="btn-secondary">Cancelar</button>
@@ -262,6 +284,8 @@ export const renderSettings = () => {
     const flagToggle = document.getElementById('show-flag-capitals');
     const areaToggle = document.getElementById('show-area-population');
     const gdpToggle = document.getElementById('show-gdp-population');
+    const flagCurrToggle = document.getElementById('show-flag-currency');
+    const detailsCurrToggle = document.getElementById('show-details-currency');
     
     livesInput.addEventListener('input', (e) => {
         livesValue.textContent = e.target.value;
@@ -288,7 +312,9 @@ export const renderSettings = () => {
             streakThreshold: newStreakThreshold,
             showFlagInCapitals: newShowFlag,
             showAreaInPopulation: newShowArea,
-            showGDPInPopulation: newShowGDP
+            showGDPInPopulation: newShowGDP,
+            showFlagInCurrency: flagCurrToggle.checked,
+            showDetailsInCurrency: detailsCurrToggle.checked
         });
         renderMenu();
     });
@@ -334,6 +360,8 @@ export const renderGameOver = () => {
             initCapitalsGame();
         } else if (state.gameMode === 'population') {
             initPopulationGame();
+        } else if (state.gameMode === 'currency') {
+            initCurrencyGame();
         }
     });
 
@@ -399,6 +427,8 @@ const handleTimeout = (correctCca3) => {
         result = handleCapitalAnswer(null);
     } else if (state.gameMode === 'population') {
         result = handlePopulationAnswer(null);
+    } else if (state.gameMode === 'currency') {
+        result = handleCurrencyAnswer(null);
     }
     
     const { lifeRecovered } = result;
@@ -423,6 +453,9 @@ const handleTimeout = (correctCca3) => {
     } else if (state.gameMode === 'population') {
         const correctCard = document.querySelector(`[data-cca3="${result.correctCca3}"]`);
         correctCard?.classList.add('card-correct');
+    } else if (state.gameMode === 'currency') {
+        const correctBtn = document.querySelector(`[data-id="${result.correctCurrency}"]`);
+        correctBtn?.classList.add('btn-correct');
     }
 
     // Pausa y siguiente paso
@@ -435,6 +468,7 @@ const handleTimeout = (correctCca3) => {
             if (state.gameMode === 'flags') generateFlagsQuestion();
             else if (state.gameMode === 'capitals') generateCapitalQuestion();
             else if (state.gameMode === 'population') generatePopulationQuestion();
+            else if (state.gameMode === 'currency') generateCurrencyQuestion();
         }
     }, 2000);
 };
@@ -494,7 +528,7 @@ export const renderFlagQuestion = (target, options) => {
             buttons.forEach(b => b.disabled = true);
             
             const selectedCca3 = btn.getAttribute('data-cca3');
-            const { isCorrect, correctCca3, lifeRecovered } = handleAnswer(selectedCca3);
+            const { isCorrect, correctCca3, lifeRecovered } = handleFlagsAnswer(selectedCca3);
             
             // Feedback visual
             if (isCorrect) {
@@ -529,7 +563,7 @@ export const renderFlagQuestion = (target, options) => {
                 if (state.lives <= 0) {
                     renderGameOver();
                 } else {
-                    generateQuestion();
+                    generateFlagsQuestion();
                 }
             }, 2000);
         });
@@ -720,6 +754,101 @@ export const renderPopulationQuestion = (options, winner) => {
                 if (state.lives <= 0) renderGameOver();
                 else generatePopulationQuestion();
             }, 3000);
+        });
+    });
+};
+
+/**
+ * Renderiza una pregunta del juego de monedas
+ */
+export const renderCurrencyQuestion = (target, options) => {
+    stopGameLogic();
+    const isIndefinite = state.settings.questionTime === 16;
+
+    app.innerHTML = `
+        <div class="game-container fade-in">
+            <div id="lives-display" class="lives-container">
+                ${renderLives()}
+            </div>
+
+            <div id="life-up-notification" class="life-up-container"></div>
+
+            ${!isIndefinite ? `
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            ` : ''}
+
+            <div class="currency-question-display">
+                <h2 class="country-name-title">${target.nombreEs}</h2>
+                
+                ${state.settings.showFlagInCurrency ? `
+                    <div class="flag-display-container mini-medium">
+                        <img src="${target.flags.svg}" alt="Bandera de ${target.nombreEs}" class="flag-display">
+                    </div>
+                ` : ''}
+
+                ${state.settings.showDetailsInCurrency ? `
+                    <div class="country-details-row">
+                        <span class="detail-badge">${target.continentesEs[0]}</span>
+                        <span class="detail-badge">${target.subregionEs}</span>
+                    </div>
+                ` : ''}
+                
+                <p class="question-text">¿Cuál es su moneda oficial?</p>
+            </div>
+            
+            <div class="options-grid">
+                ${options.map(country => {
+                    const currencyStr = getCurrencyString(country);
+                    return `
+                        <button class="option-btn" data-id="${currencyStr}">
+                            ${currencyStr}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+
+    if (!isIndefinite) startTimer(getCurrencyString(target));
+
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            buttons.forEach(b => b.disabled = true);
+            
+            const selectedCurrency = btn.getAttribute('data-id');
+            const { isCorrect, correctCurrency, lifeRecovered } = handleCurrencyAnswer(selectedCurrency);
+            
+            if (isCorrect) {
+                btn.classList.add('btn-correct');
+                if (lifeRecovered) {
+                    const livesDisplay = document.getElementById('lives-display');
+                    if (livesDisplay) {
+                        livesDisplay.innerHTML = renderLives();
+                        showLifeUpFeedback();
+                    }
+                }
+            } else {
+                btn.classList.add('btn-incorrect');
+                const livesDisplay = document.getElementById('lives-display');
+                if (livesDisplay) livesDisplay.innerHTML = renderLives();
+
+                const correctBtn = document.querySelector(`[data-id="${correctCurrency}"]`);
+                correctBtn?.classList.add('btn-correct');
+            }
+
+            transitionTimeout = setTimeout(() => {
+                if (state.view !== 'game') return;
+                if (state.lives <= 0) renderGameOver();
+                else generateCurrencyQuestion();
+            }, 2000);
         });
     });
 };
