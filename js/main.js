@@ -6,16 +6,24 @@ import { fetchAllCountries } from './api.js';
  * Inicialización de la aplicación
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('GeoSmart cargado correctamente');
-    
     // Cargamos la configuración del usuario
     loadSettings();
     
-    // Mostramos el menú inmediatamente
+    // Mostramos el menú (en estado de carga)
     renderMenu();
 
-    // Cargamos los datos en segundo plano
-    const countries = await fetchAllCountries();
-    state.countries = countries;
-    console.log(`${countries.length} países cargados en español.`);
+    try {
+        // Cargamos los datos
+        const countries = await fetchAllCountries();
+        state.countries = countries;
+        state.loading = false;
+        
+        // Actualizamos el menú con los datos cargados
+        renderMenu();
+        console.log(`${countries.length} países cargados correctamente.`);
+    } catch (error) {
+        state.loading = false;
+        state.error = "Error al conectar con el servidor. Por favor, revisa tu conexión.";
+        renderMenu();
+    }
 });

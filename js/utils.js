@@ -292,27 +292,10 @@ export const translateCurrency = (name) => {
 export const simplifyCurrency = (name) => {
     if (!name) return 'N/A';
     
-    let simplified = name;
+    // Regex consolidada para eliminar términos geográficos y gentilicios (incluyendo preposiciones comunes)
+    const combinedRegex = / de los Emiratos Árabes Unidos| del Caribe Oriental| de África (Occidental|Central)| de las Islas (Caimán|Cook|Malvinas|Salomón)| de (Barbados|Bermudas|Brunéi|Gibraltar|Guernsey|Jersey|Macao|Santa Elena|Seychelles|Sri Lanka|Singapur)| de la Isla de Man| (estadounidense|macedonio|mauriciana|australiano|canadiense|mexicano|argentino|chileno|colombiano|neozelandés|peruano|uruguayo|cubano|dominicano|paraguayo|boliviano|venezolano|panameño|costarricense|hondureño|guatemalteco|nicaragüense|haitiano|bahameño|jamaiquino|beliceño|fiyiano|guyancés)| (europeo|euro|afgano|albanés|argelino|guyanés|angoleño|armenio|azerbaiyano|bahreiní|bangladesí|bielorruso|butanés|conversion|bosnio|botsuano|brasileño|búlgaro|birmano|burundés|caboverdiano|camboyano|comorense|congoleño|yibutiano|egipcio|eritreo|etíope|feroés|ghanés|guineano|húngaro|islandés|indonesio|iraní|iraquí|israelí|jordano|kazajo|keniano|kuwaití|kirguís|lao|libanés|lesotense|liberiano|libio|malgache|malauí|malayo|maldivo|mauritano|mauriciano|moldavo|mongol|marroquí|mozambiqueño|namibio|nepalí|nigeriano|norcoreano|surcoreano|noruego|omaní|pakistaní|polaco|qatarí|rumano|ruso|ruandés|samoano|saudí|serbio|somalí|sudafricano|sursudanés|sudanés|surinamés|sirio|taiwanés|tayiko|tanzano|tailandés|tongano|tunecino|turcomano|ugandés|ucraniano|uzbeko|vietnamita|yemení|zambiano|zimbabuense)| (Hong Kong|siria|esterlina|suizo|jamaicano|convertible|egipcia|soberano|antillano neerlandés|danesa|nuevo)/gi;
     
-    // Lista de términos geográficos y gentilicios a eliminar (incluyendo preposiciones comunes)
-    const toRemove = [
-        / de los Emiratos Árabes Unidos/i,
-        / del Caribe Oriental/i,
-        / de África (Occidental|Central)/i,
-        / de las Islas (Caimán|Cook|Malvinas|Salomón)/i,
-        / de (Barbados|Bermudas|Brunéi|Gibraltar|Guernsey|Jersey|Macao|Santa Elena|Seychelles|Sri Lanka|Singapur)/i,
-        / de la Isla de Man/i,
-        / (estadounidense|macedonio|mauriciana|australiano|canadiense|mexicano|argentino|chileno|colombiano|neozelandés|peruano|uruguayo|cubano|dominicano|paraguayo|boliviano|venezolano|panameño|costarricense|hondureño|guatemalteco|nicaragüense|haitiano|bahameño|jamaiquino|beliceño|fiyiano|guyancés)/i,
-        / (europeo|euro|afgano|albanés|argelino|guyanés|angoleño|armenio|azerbaiyano|bahreiní|bangladesí|bielorruso|butanés|conversion|bosnio|botsuano|brasileño|búlgaro|birmano|burundés|caboverdiano|camboyano|comorense|congoleño|yibutiano|egipcio|eritreo|etíope|feroés|ghanés|guineano|húngaro|islandés|indonesio|iraní|iraquí|israelí|jordano|kazajo|keniano|kuwaití|kirguís|lao|libanés|lesotense|liberiano|libio|malgache|malauí|malayo|maldivo|mauritano|mauriciano|moldavo|mongol|marroquí|mozambiqueño|namibio|nepalí|nigeriano|norcoreano|surcoreano|noruego|omaní|pakistaní|polaco|qatarí|rumano|ruso|ruandés|samoano|saudí|serbio|somalí|sudafricano|sursudanés|sudanés|surinamés|sirio|taiwanés|tayiko|tanzano|tailandés|tongano|tunecino|turcomano|ugandés|ucraniano|uzbeko|vietnamita|yemení|zambiano|zimbabuense)/i,
-        / (Hong Kong|siria|esterlina|suizo|jamaicano|convertible|egipcia|soberano|antillano neerlandés|danesa|nuevo)/i
-    ];
-    
-    toRemove.forEach(regex => {
-        simplified = simplified.replace(regex, '');
-    });
-    
-    // Limpieza final de espacios
-    simplified = simplified.trim();
+    simplified = name.replace(combinedRegex, '').trim();
     
     // Si después de simplificar queda vacío (ej: "Boliviano" -> ""), volvemos al original
     if (simplified.length < 3) return name;

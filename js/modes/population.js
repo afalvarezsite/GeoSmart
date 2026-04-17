@@ -19,7 +19,7 @@ export const initPopulationGame = () => {
 export const generatePopulationQuestion = () => {
     if (state.countries.length < 2) return;
 
-    // 1. Crear una lista de países válidos ordenada por extensión
+    // 1. Filtrar países válidos y ordenar por extensión
     const validCountries = state.countries
         .filter(c => c.population !== undefined && c.area !== undefined)
         .sort((a, b) => a.area - b.area);
@@ -28,24 +28,28 @@ export const generatePopulationQuestion = () => {
 
     let countryA, countryB, pairKey;
     let attempts = 0;
-    const maxGlobalAttempts = 15;
+    const MAX_ATTEMPTS = 15;
 
     // 2. Intentar generar una pareja que no esté en el historial reciente
     do {
         const indexA = Math.floor(Math.random() * validCountries.length);
         countryA = validCountries[indexA];
         
-        const isChaosSelection = Math.random() < 0.05;
+        // Decisión: ¿Selección vecina (difícil) o caos (aleatorio)?
+        const isChaos = Math.random() < 0.05;
 
-        if (isChaosSelection) {
+        if (isChaos) {
+            // Seleccionar cualquiera excepto el mismo
+            let indexB;
             do {
-                const randomIdx = Math.floor(Math.random() * validCountries.length);
-                countryB = validCountries[randomIdx];
-            } while (countryB.cca3 === countryA.cca3);
+                indexB = Math.floor(Math.random() * validCountries.length);
+            } while (indexB === indexA);
+            countryB = validCountries[indexB];
         } else {
-            const range = 8; 
-            const minIdx = Math.max(0, indexA - range);
-            const maxIdx = Math.min(validCountries.length - 1, indexA + range);
+            // Seleccionar un "vecino" en la lista ordenada por área (similar tamaño)
+            const RANGE = 8; 
+            const minIdx = Math.max(0, indexA - RANGE);
+            const maxIdx = Math.min(validCountries.length - 1, indexA + RANGE);
             
             let indexB;
             let neighborAttempts = 0;
@@ -57,38 +61,26 @@ export const generatePopulationQuestion = () => {
             countryB = validCountries[indexB];
         }
 
-        // Crear una clave única para la pareja (ordenada alfabéticamente)
         pairKey = [countryA.cca3, countryB.cca3].sort().join('_');
         attempts++;
 
-        // Si ya está en el historial, reintentamos hasta maxGlobalAttempts veces
-    } while (state.history.includes(pairKey) && attempts < maxGlobalAttempts);
+    } while (state.history.includes(pairKey) && attempts < MAX_ATTEMPTS);
 
-    // Guardar en el historial (manteniendo solo los últimos 40 para no quedarse sin opciones)
+    // 3. Actualizar historial
     state.history.push(pairKey);
     if (state.history.length > 40) state.history.shift();
     
-    // Mezclamos el par para la UI
     const pair = shuffle([countryA, countryB]);
+    const winner = pair[0].population >= pair[1].population ? pair[0] : pair[1];
     
-    // Determinamos el ganador
-    const winner = pair[0].population >= pair[1].population 
-        ? pair[0] 
-        : pair[1];
-    
-    // Guardamos la pregunta actual
-    state.currentQuestion = {
-        options: pair,
-        winner: winner
-    };
+    state.currentQuestion = { options: pair, winner: winner };
 
-    // Verificación de seguridad
+    // Seguridad final
     if (!pair[0] || !pair[1]) {
-        console.error('Error al generar pareja de países:', pair);
-        return generatePopulationQuestion(); // Reintentar
+        console.error('Fallo crítico en generación de pareja');
+        return generatePopulationQuestion();
     }
 
-    // Renderizamos la pregunta
     renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
 };
 

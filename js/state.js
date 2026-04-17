@@ -16,6 +16,8 @@ export const state = {
     lives: 0,
     streak: 0,
     countries: [],
+    loading: true,
+    error: null,
     currentQuestion: null,
     history: [],
     settings: { ...DEFAULT_SETTINGS }

@@ -51,6 +51,6 @@ export const fetchAllCountries = async () => {
         }));
     } catch (error) {
         console.error('API Error:', error);
-        return [];
+        throw error; // Rethrow to let the UI/Main handle it
     }
 };

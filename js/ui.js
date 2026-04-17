@@ -28,17 +28,44 @@ const stopGameLogic = () => {
 };
 
 /**
+ * Renderiza un mensaje de error con opción de reintentar
+ */
+export const renderError = (message) => {
+    stopGameLogic();
+    app.innerHTML = `
+        <div class="menu-container error-state fade-in">
+            <div class="error-icon">⚠️</div>
+            <h2 class="menu-title">¡Ups! Algo salió mal</h2>
+            <p class="error-message">${message}</p>
+            <button id="btn-retry" class="btn-primary btn-large">Reintentar Conexión</button>
+        </div>
+    `;
+
+    document.getElementById('btn-retry')?.addEventListener('click', () => {
+        window.location.reload();
+    });
+};
+
+/**
  * Renderiza el menú principal de selección de juegos
  */
 export const renderMenu = () => {
     stopGameLogic();
+    
+    // Si hay un error crítico guardado, lo mostramos
+    if (state.error) {
+        renderError(state.error);
+        return;
+    }
+
     // Asegurar que la barra de estadísticas esté oculta en el menú
     document.getElementById('stats-bar')?.classList.add('hidden');
     
     app.innerHTML = `
         <div class="menu-container fade-in">
             <h2 class="menu-title">Selecciona tu Desafío</h2>
-            <div class="game-grid">
+            ${state.loading ? '<div class="loader inline">Cargando datos del mundo...</div>' : ''}
+            <div class="game-grid ${state.loading ? 'loading-overlay' : ''}">
                 <div class="game-card card-flags" data-mode="flags">
                     <div class="card-content">
                         <h2>Adivina la Bandera</h2>
@@ -71,13 +98,17 @@ export const renderMenu = () => {
         </div>
     `;
 
-    // Añadir eventos a las tarjetas
-    const cards = document.querySelectorAll('.game-card');
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
+    // Si aún está cargando, no añadimos listeners (o podríamos añadir uno que avise)
+    if (state.loading) return;
+
+    // Añadir eventos a las tarjetas utilizando delegación para el grid
+    const grid = document.querySelector('.game-grid');
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.game-card');
+        if (card) {
             const mode = card.getAttribute('data-mode');
             startGame(mode);
-        });
+        }
     });
 };
 
@@ -390,6 +421,15 @@ export const renderGameOver = () => {
 };
 
 /**
+ * Pre-carga una imagen (bandera) para evitar parpadeos
+ */
+const preloadFlag = (url) => {
+    if (!url) return;
+    const img = new Image();
+    img.src = url;
+};
+
+/**
  * Inicia el temporizador para la pregunta actual
  */
 const startTimer = (correctCca3) => {
@@ -506,6 +546,9 @@ export const renderFlagQuestion = (target, options) => {
     stopGameLogic();
 
     const isIndefinite = state.settings.questionTime === 16;
+    
+    // Pre-cargar bandera actual
+    preloadFlag(target.flags.svg);
 
     app.innerHTML = `
         <div class="game-container fade-in">
@@ -525,7 +568,7 @@ export const renderFlagQuestion = (target, options) => {
                 <img src="${target.flags.svg}" alt="Bandera a adivinar" class="flag-display">
             </div>
             
-            <div class="options-grid">
+            <div class="options-grid" id="options-grid">
                 ${options.map(country => `
                     <button class="option-btn" data-cca3="${country.cca3}">
                         ${country.nombreEs}
@@ -540,62 +583,51 @@ export const renderFlagQuestion = (target, options) => {
         startTimer(target.cca3);
     }
 
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isTransitioning) return;
-            
-            // Detener temporizador inmediatamente al responder
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+    const grid = document.getElementById('options-grid');
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.option-btn');
+        if (!btn || isTransitioning) return;
+        
+        // Detener temporizador inmediatamente al responder
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
 
-            isTransitioning = true;
+        isTransitioning = true;
+        
+        // Desactiva todos los botones después del click
+        const buttons = grid.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+        
+        const selectedCca3 = btn.getAttribute('data-cca3');
+        const { isCorrect, correctCca3, lifeRecovered } = handleFlagsAnswer(selectedCca3);
+        
+        // Feedback visual
+        if (isCorrect) {
+            btn.classList.add('btn-correct');
             
-            // Desactiva todos los botones después del click
-            buttons.forEach(b => b.disabled = true);
-            
-            const selectedCca3 = btn.getAttribute('data-cca3');
-            const { isCorrect, correctCca3, lifeRecovered } = handleFlagsAnswer(selectedCca3);
-            
-            // Feedback visual
-            if (isCorrect) {
-                btn.classList.add('btn-correct');
-                
-                // Si recuperó vida por racha, actualizar corazones
-                if (lifeRecovered) {
-                    const livesDisplay = document.getElementById('lives-display');
-                    if (livesDisplay) {
-                        livesDisplay.innerHTML = renderLives();
-                        showLifeUpFeedback();
-                    }
-                }
-            } else {
-                btn.classList.add('btn-incorrect');
-                
-                // Actualizar vidas visualmente de inmediato
+            if (lifeRecovered) {
                 const livesDisplay = document.getElementById('lives-display');
                 if (livesDisplay) {
                     livesDisplay.innerHTML = renderLives();
+                    showLifeUpFeedback();
                 }
-
-                // Mostrar la correcta
-                const correctBtn = document.querySelector(`[data-cca3="${correctCca3}"]`);
-                correctBtn?.classList.add('btn-correct');
             }
+        } else {
+            btn.classList.add('btn-incorrect');
+            const livesDisplay = document.getElementById('lives-display');
+            if (livesDisplay) livesDisplay.innerHTML = renderLives();
 
-            // Pausa y siguiente paso (pregunta o fin)
-            transitionTimeout = setTimeout(() => {
-                if (state.view !== 'game') return; // Seguridad extra
-                
-                if (state.lives <= 0) {
-                    renderGameOver();
-                } else {
-                    generateFlagsQuestion();
-                }
-            }, 2000);
-        });
+            const correctBtn = grid.querySelector(`[data-cca3="${correctCca3}"]`);
+            correctBtn?.classList.add('btn-correct');
+        }
+
+        transitionTimeout = setTimeout(() => {
+            if (state.view !== 'game') return;
+            if (state.lives <= 0) renderGameOver();
+            else generateFlagsQuestion();
+        }, 2000);
     });
 };
 
@@ -605,6 +637,7 @@ export const renderFlagQuestion = (target, options) => {
 export const renderCapitalQuestion = (target, options) => {
     stopGameLogic();
     const isIndefinite = state.settings.questionTime === 16;
+    preloadFlag(target.flags.svg);
 
     app.innerHTML = `
         <div class="game-container fade-in">
@@ -629,7 +662,7 @@ export const renderCapitalQuestion = (target, options) => {
                 ` : ''}
             </div>
             
-            <div class="options-grid">
+            <div class="options-grid" id="options-grid">
                 ${options.map(country => `
                     <button class="option-btn" data-id="${country.capital[0]}">
                         ${country.capital[0]}
@@ -641,46 +674,46 @@ export const renderCapitalQuestion = (target, options) => {
 
     if (!isIndefinite) startTimer(target.capital[0]);
 
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isTransitioning) return;
+    const grid = document.getElementById('options-grid');
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.option-btn');
+        if (!btn || isTransitioning) return;
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
 
-            isTransitioning = true;
-            buttons.forEach(b => b.disabled = true);
-            
-            const selectedCapital = btn.getAttribute('data-id');
-            const { isCorrect, correctCapital, lifeRecovered } = handleCapitalAnswer(selectedCapital);
-            
-            if (isCorrect) {
-                btn.classList.add('btn-correct');
-                if (lifeRecovered) {
-                    const livesDisplay = document.getElementById('lives-display');
-                    if (livesDisplay) {
-                        livesDisplay.innerHTML = renderLives();
-                        showLifeUpFeedback();
-                    }
-                }
-            } else {
-                btn.classList.add('btn-incorrect');
+        isTransitioning = true;
+        const buttons = grid.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+        
+        const selectedCapital = btn.getAttribute('data-id');
+        const { isCorrect, correctCapital, lifeRecovered } = handleCapitalAnswer(selectedCapital);
+        
+        if (isCorrect) {
+            btn.classList.add('btn-correct');
+            if (lifeRecovered) {
                 const livesDisplay = document.getElementById('lives-display');
-                if (livesDisplay) livesDisplay.innerHTML = renderLives();
-
-                const correctBtn = document.querySelector(`[data-id="${correctCapital}"]`);
-                correctBtn?.classList.add('btn-correct');
+                if (livesDisplay) {
+                    livesDisplay.innerHTML = renderLives();
+                    showLifeUpFeedback();
+                }
             }
+        } else {
+            btn.classList.add('btn-incorrect');
+            const livesDisplay = document.getElementById('lives-display');
+            if (livesDisplay) livesDisplay.innerHTML = renderLives();
 
-            transitionTimeout = setTimeout(() => {
-                if (state.view !== 'game') return;
-                if (state.lives <= 0) renderGameOver();
-                else generateCapitalQuestion();
-            }, 2000);
-        });
+            const correctBtn = grid.querySelector(`[data-id="${correctCapital}"]`);
+            correctBtn?.classList.add('btn-correct');
+        }
+
+        transitionTimeout = setTimeout(() => {
+            if (state.view !== 'game') return;
+            if (state.lives <= 0) renderGameOver();
+            else generateCapitalQuestion();
+        }, 2000);
     });
 };
 
@@ -690,6 +723,9 @@ export const renderCapitalQuestion = (target, options) => {
 export const renderPopulationQuestion = (options, winner) => {
     stopGameLogic();
     const isIndefinite = state.settings.questionTime === 16;
+    
+    // Pre-cargar ambas banderas
+    options.forEach(opt => preloadFlag(opt.flags.svg));
 
     app.innerHTML = `
         <div class="game-container fade-in">
@@ -707,7 +743,7 @@ export const renderPopulationQuestion = (options, winner) => {
 
             <h2 class="question-title">¿Cuál tiene más habitantes?</h2>
             
-            <div class="comparison-grid">
+            <div class="comparison-grid" id="comparison-grid">
                 ${options.map(country => `
                     <div class="country-card-large" data-cca3="${country.cca3}">
                         <div class="flag-wrapper">
@@ -747,49 +783,49 @@ export const renderPopulationQuestion = (options, winner) => {
 
     if (!isIndefinite) startTimer(winner.cca3);
 
-    const cards = document.querySelectorAll('.country-card-large');
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            if (isTransitioning) return;
+    const grid = document.getElementById('comparison-grid');
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.country-card-large');
+        if (!card || isTransitioning) return;
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
 
-            isTransitioning = true;
-            cards.forEach(c => c.style.pointerEvents = 'none');
-            
-            const selectedCca3 = card.getAttribute('data-cca3');
-            const { isCorrect, correctCca3, lifeRecovered } = handlePopulationAnswer(selectedCca3);
-            
-            // Revelar poblaciones
-            document.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
-            
-            if (isCorrect) {
-                card.classList.add('card-correct');
-                if (lifeRecovered) {
-                    const livesDisplay = document.getElementById('lives-display');
-                    if (livesDisplay) {
-                        livesDisplay.innerHTML = renderLives();
-                        showLifeUpFeedback();
-                    }
-                }
-            } else {
-                card.classList.add('card-incorrect');
+        isTransitioning = true;
+        const cards = grid.querySelectorAll('.country-card-large');
+        cards.forEach(c => c.style.pointerEvents = 'none');
+        
+        const selectedCca3 = card.getAttribute('data-cca3');
+        const { isCorrect, correctCca3, lifeRecovered } = handlePopulationAnswer(selectedCca3);
+        
+        // Revelar poblaciones
+        grid.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
+        
+        if (isCorrect) {
+            card.classList.add('card-correct');
+            if (lifeRecovered) {
                 const livesDisplay = document.getElementById('lives-display');
-                if (livesDisplay) livesDisplay.innerHTML = renderLives();
-
-                const correctCard = document.querySelector(`[data-cca3="${correctCca3}"]`);
-                correctCard?.classList.add('card-correct');
+                if (livesDisplay) {
+                    livesDisplay.innerHTML = renderLives();
+                    showLifeUpFeedback();
+                }
             }
+        } else {
+            card.classList.add('card-incorrect');
+            const livesDisplay = document.getElementById('lives-display');
+            if (livesDisplay) livesDisplay.innerHTML = renderLives();
 
-            transitionTimeout = setTimeout(() => {
-                if (state.view !== 'game') return;
-                if (state.lives <= 0) renderGameOver();
-                else generatePopulationQuestion();
-            }, 3000);
-        });
+            const correctCard = grid.querySelector(`[data-cca3="${correctCca3}"]`);
+            correctCard?.classList.add('card-correct');
+        }
+
+        transitionTimeout = setTimeout(() => {
+            if (state.view !== 'game') return;
+            if (state.lives <= 0) renderGameOver();
+            else generatePopulationQuestion();
+        }, 3000);
     });
 };
 
@@ -799,6 +835,7 @@ export const renderPopulationQuestion = (options, winner) => {
 export const renderCurrencyQuestion = (target, options) => {
     stopGameLogic();
     const isIndefinite = state.settings.questionTime === 16;
+    preloadFlag(target.flags.svg);
 
     app.innerHTML = `
         <div class="game-container fade-in">
@@ -833,7 +870,7 @@ export const renderCurrencyQuestion = (target, options) => {
                 <p class="question-text">¿Cuál es su moneda oficial?</p>
             </div>
             
-            <div class="options-grid">
+            <div class="options-grid" id="options-grid">
                 ${options.map(country => {
                     const currencyStr = getCurrencyString(country);
                     return `
@@ -848,46 +885,46 @@ export const renderCurrencyQuestion = (target, options) => {
 
     if (!isIndefinite) startTimer(getCurrencyString(target));
 
-    const buttons = document.querySelectorAll('.option-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (isTransitioning) return;
+    const grid = document.getElementById('options-grid');
+    grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.option-btn');
+        if (!btn || isTransitioning) return;
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
 
-            isTransitioning = true;
-            buttons.forEach(b => b.disabled = true);
-            
-            const selectedCurrency = btn.getAttribute('data-id');
-            const { isCorrect, correctCurrency, lifeRecovered } = handleCurrencyAnswer(selectedCurrency);
-            
-            if (isCorrect) {
-                btn.classList.add('btn-correct');
-                if (lifeRecovered) {
-                    const livesDisplay = document.getElementById('lives-display');
-                    if (livesDisplay) {
-                        livesDisplay.innerHTML = renderLives();
-                        showLifeUpFeedback();
-                    }
-                }
-            } else {
-                btn.classList.add('btn-incorrect');
+        isTransitioning = true;
+        const buttons = grid.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+        
+        const selectedCurrency = btn.getAttribute('data-id');
+        const { isCorrect, correctCurrency, lifeRecovered } = handleCurrencyAnswer(selectedCurrency);
+        
+        if (isCorrect) {
+            btn.classList.add('btn-correct');
+            if (lifeRecovered) {
                 const livesDisplay = document.getElementById('lives-display');
-                if (livesDisplay) livesDisplay.innerHTML = renderLives();
-
-                const correctBtn = document.querySelector(`[data-id="${correctCurrency}"]`);
-                correctBtn?.classList.add('btn-correct');
+                if (livesDisplay) {
+                    livesDisplay.innerHTML = renderLives();
+                    showLifeUpFeedback();
+                }
             }
+        } else {
+            btn.classList.add('btn-incorrect');
+            const livesDisplay = document.getElementById('lives-display');
+            if (livesDisplay) livesDisplay.innerHTML = renderLives();
 
-            transitionTimeout = setTimeout(() => {
-                if (state.view !== 'game') return;
-                if (state.lives <= 0) renderGameOver();
-                else generateCurrencyQuestion();
-            }, 2000);
-        });
+            const correctBtn = grid.querySelector(`[data-id="${correctCurrency}"]`);
+            correctBtn?.classList.add('btn-correct');
+        }
+
+        transitionTimeout = setTimeout(() => {
+            if (state.view !== 'game') return;
+            if (state.lives <= 0) renderGameOver();
+            else generateCurrencyQuestion();
+        }, 2000);
     });
 };
 
