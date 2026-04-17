@@ -4,8 +4,31 @@
 }
 
 .fade-in {
-    animation: fadeIn 0.6s ease-out forwards;
+    animation: fadeIn 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
+
+@keyframes titleReveal {
+    0% { opacity: 0; transform: translateY(-20px) scale(0.9); filter: blur(10px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.menu-title {
+    animation: titleReveal 1s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes cardEntrance {
+    0% { opacity: 0; transform: translateY(40px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.game-card {
+    animation: cardEntrance 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+}
+
+.game-card:nth-child(1) { animation-delay: 0.1s; }
+.game-card:nth-child(2) { animation-delay: 0.2s; }
+.game-card:nth-child(3) { animation-delay: 0.3s; }
+.game-card:nth-child(4) { animation-delay: 0.4s; }
 
 @keyframes slideInRight {
     from { transform: translateX(100%); opacity: 0; }

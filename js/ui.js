@@ -38,16 +38,32 @@ export const renderMenu = () => {
             <h2 class="menu-title">Selecciona tu Desafío</h2>
             <div class="game-grid">
                 <div class="game-card card-flags" data-mode="flags">
-                    <h2>Adivina la Bandera</h2>
+                    <div class="card-content">
+                        <h2>Adivina la Bandera</h2>
+                        <p>Pon a prueba tu memoria visual con las banderas de todas las naciones del mundo.</p>
+                        <span class="btn-play">Jugar Ahora</span>
+                    </div>
                 </div>
                 <div class="game-card card-capitals" data-mode="capitals">
-                    <h2>Adivina la Capital</h2>
+                    <div class="card-content">
+                        <h2>Adivina la Capital</h2>
+                        <p>Demuestra tu conocimiento geográfico identificando las capitales de cada país.</p>
+                        <span class="btn-play">Jugar Ahora</span>
+                    </div>
                 </div>
                 <div class="game-card card-population" data-mode="population">
-                    <h2>Mayor Población</h2>
+                    <div class="card-content">
+                        <h2>Mayor Población</h2>
+                        <p>Un desafío de lógica y datos: ¿cuál de estos dos países tiene más habitantes?</p>
+                        <span class="btn-play">Jugar Ahora</span>
+                    </div>
                 </div>
                 <div class="game-card card-currency" data-mode="currency">
-                    <h2>Moneda Oficial</h2>
+                    <div class="card-content">
+                        <h2>Moneda Oficial</h2>
+                        <p>Desde el Euro hasta el Yen, identifica la divisa oficial de cada territorio.</p>
+                        <span class="btn-play">Jugar Ahora</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -196,7 +212,7 @@ export const renderSettings = () => {
 
                     <div class="setting-group">
                         <label for="question-time">
-                            Tiempo por Bandera
+                            Tiempo por Pregunta
                             <span>(Segundos disponibles para responder)</span>
                         </label>
                         <div class="input-row">
