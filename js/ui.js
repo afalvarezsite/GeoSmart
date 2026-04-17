@@ -8,11 +8,13 @@ import { initCurrencyGame, handleCurrencyAnswer, generateCurrencyQuestion, getCu
 const app = document.getElementById('app');
 let timerInterval = null;
 let transitionTimeout = null;
+let isTransitioning = false;
 
 /**
  * Detiene toda la lógica activa del juego (temporizadores y transiciones)
  */
 const stopGameLogic = () => {
+    isTransitioning = false;
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
@@ -431,9 +433,16 @@ const startTimer = (correctCca3) => {
  * Maneja el evento de tiempo agotado
  */
 const handleTimeout = (correctCca3) => {
-    // Desactivar botones
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    // Desactivar botones de opción
     const buttons = document.querySelectorAll('.option-btn');
     buttons.forEach(b => b.disabled = true);
+
+    // Desactivar tarjetas de población (si aplica)
+    const cards = document.querySelectorAll('.country-card-large');
+    cards.forEach(c => c.style.pointerEvents = 'none');
 
     // Ejecutar lógica de fallo por tiempo
     let result;
@@ -534,12 +543,16 @@ export const renderFlagQuestion = (target, options) => {
     const buttons = document.querySelectorAll('.option-btn');
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (isTransitioning) return;
+            
             // Detener temporizador inmediatamente al responder
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
 
+            isTransitioning = true;
+            
             // Desactiva todos los botones después del click
             buttons.forEach(b => b.disabled = true);
             
@@ -631,11 +644,14 @@ export const renderCapitalQuestion = (target, options) => {
     const buttons = document.querySelectorAll('.option-btn');
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (isTransitioning) return;
+
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
 
+            isTransitioning = true;
             buttons.forEach(b => b.disabled = true);
             
             const selectedCapital = btn.getAttribute('data-id');
@@ -734,11 +750,14 @@ export const renderPopulationQuestion = (options, winner) => {
     const cards = document.querySelectorAll('.country-card-large');
     cards.forEach(card => {
         card.addEventListener('click', () => {
+            if (isTransitioning) return;
+
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
 
+            isTransitioning = true;
             cards.forEach(c => c.style.pointerEvents = 'none');
             
             const selectedCca3 = card.getAttribute('data-cca3');
@@ -832,11 +851,14 @@ export const renderCurrencyQuestion = (target, options) => {
     const buttons = document.querySelectorAll('.option-btn');
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
+            if (isTransitioning) return;
+
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
 
+            isTransitioning = true;
             buttons.forEach(b => b.disabled = true);
             
             const selectedCurrency = btn.getAttribute('data-id');

@@ -1,7 +1,7 @@
 export const DEFAULT_SETTINGS = {
     maxLives: 3,
     questionTime: 7,
-    streakThreshold: 5,
+    streakThreshold: 3,
     showFlagInCapitals: true,
     showAreaInPopulation: false,
     showGDPInPopulation: false,

@@ -82,6 +82,12 @@ export const generatePopulationQuestion = () => {
         winner: winner
     };
 
+    // Verificación de seguridad
+    if (!pair[0] || !pair[1]) {
+        console.error('Error al generar pareja de países:', pair);
+        return generatePopulationQuestion(); // Reintentar
+    }
+
     // Renderizamos la pregunta
     renderPopulationQuestion(state.currentQuestion.options, state.currentQuestion.winner);
 };
