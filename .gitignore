@@ -1,0 +1,18 @@
+# Dependencias
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# GeoSmart - Temporales
+assets/*.tmp
+*.bak
+
+# Documentación interna del asistente
+# implementation_plan.md
+# task.md
+# walkthrough.md

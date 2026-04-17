@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoSmart - Desafío Mundial</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <h1>Geo<span>Smart</span></h1>
+        </div>
+        <div id="stats-bar" class="hidden">
+            <span id="player-score">Puntos: 0</span>
+        </div>
+        <nav class="nav-buttons">
+            <button id="btn-menu" class="btn-primary">Menú</button>
+            <button id="btn-new-game" class="btn-primary">Nuevo Juego</button>
+            <button id="btn-settings" class="btn-primary">Configuración</button>
+            <button id="btn-help" class="btn-primary">Ayuda</button>
+            <button id="btn-exit" class="btn-primary">Salir</button>
+        </nav>
+    </header>
+
+    <main id="app">
+        <!-- El contenido será inyectado por JavaScript -->
+        <div class="loader">Cargando desafío...</div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 GeoSmart | Geografía para mentes brillantes</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
