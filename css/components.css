@@ -470,3 +470,251 @@
     20% { transform: translateY(-20px) scale(1.1); opacity: 1; }
     100% { transform: translateY(-60px) scale(1); opacity: 0; }
 }
+
+/* Modo Capitales */
+.capital-question-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.country-name-badge {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    padding: 0.8rem 2rem;
+    border-radius: 4rem;
+    font-size: 2.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.flag-display-container.mini {
+    height: 180px;
+    max-width: 300px;
+    margin-bottom: 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    border-width: 2px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Switch Toggle Component */
+.setting-group.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Switch Simplificado */
+.neo-switch {
+    position: relative;
+    height: 1.5rem;
+    width: 3rem;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 9999px;
+    background-color: rgba(148, 163, 184, 0.2);
+    transition: all .3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.neo-switch:checked {
+    background-color: var(--secondary);
+}
+
+.neo-switch::before {
+    position: absolute;
+    content: "";
+    left: -0.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block;
+    height: 1.7rem;
+    width: 1.7rem;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    background-color: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transition: all .3s ease;
+}
+
+.neo-switch:hover::before {
+    box-shadow: 0 0 0px 8px rgba(255, 255, 255, 0.05);
+}
+
+.neo-switch:checked:hover::before {
+    box-shadow: 0 0 0px 8px rgba(236, 72, 153, 0.15);
+}
+
+.neo-switch:checked::before {
+    transform: translateX(1.5rem) translateY(-50%);
+    border-color: var(--secondary);
+}
+
+/* Modo Mayor Población (Comparación) */
+.question-title {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-white);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.country-card-large {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 2.5rem;
+    padding: 2.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+.country-card-large:hover {
+    transform: translateY(-15px) scale(1.03);
+    border-color: var(--primary);
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.flag-wrapper {
+    width: 280px;
+    height: 180px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.2);
+    border: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.flag-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.country-name {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: white;
+}
+
+.country-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-badge {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.6rem 1.2rem;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-badge .label {
+    color: var(--text-gray);
+    font-weight: 500;
+}
+
+.info-badge .value {
+    color: var(--text-white);
+    font-weight: 700;
+}
+
+.population-reveal {
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--secondary);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    transition: all 0.5s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.population-reveal.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+.pop-number {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: white;
+    margin-right: 0.3rem;
+}
+
+.card-correct {
+    border-color: var(--accent) !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+}
+
+.card-incorrect {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+    animation: shake 0.4s ease-in-out;
+}
+
+@media (max-width: 900px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .country-card-large {
+        padding: 1.5rem;
+    }
+    
+    .flag-wrapper {
+        width: 220px;
+        height: 140px;
+    }
+    
+    .country-name {
+        font-size: 1.8rem;
+    }
+}

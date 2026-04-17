@@ -13,7 +13,9 @@ export const state = {
     settings: {
         maxLives: 3,
         questionTime: 7,
-        streakThreshold: 5
+        streakThreshold: 5,
+        showFlagInCapitals: true,
+        showAreaInPopulation: false
     }
 };
 

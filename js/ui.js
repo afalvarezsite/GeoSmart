@@ -1,5 +1,7 @@
 import { state, saveSettings } from './state.js';
-import { initFlagsGame, handleAnswer, generateQuestion } from './modes/flags.js';
+import { initFlagsGame, handleAnswer as handleFlagsAnswer, generateQuestion as generateFlagsQuestion } from './modes/flags.js';
+import { initCapitalsGame, handleCapitalAnswer, generateCapitalQuestion } from './modes/capitals.js';
+import { initPopulationGame, handlePopulationAnswer, generatePopulationQuestion } from './modes/population.js';
 
 const app = document.getElementById('app');
 let timerInterval = null;
@@ -66,7 +68,7 @@ const startGame = (mode) => {
     console.log(`Iniciando juego: ${mode}`);
     state.gameMode = mode;
     
-    if (mode === 'flags') {
+    if (mode === 'flags' || mode === 'capitals' || mode === 'population') {
         renderCountdown(mode);
         return;
     }
@@ -137,6 +139,10 @@ const renderCountdown = (mode) => {
 
             if (mode === 'flags') {
                 initFlagsGame();
+            } else if (mode === 'capitals') {
+                initCapitalsGame();
+            } else if (mode === 'population') {
+                initPopulationGame();
             }
         }
     }, 1000);
@@ -204,6 +210,22 @@ export const renderSettings = () => {
                     </div>
                 </div>
 
+                <div class="setting-group flex-between">
+                    <label for="show-flag-capitals">
+                        Mostrar Bandera en Capitales
+                        <span>(Ayuda visual adicional para identificar el país)</span>
+                    </label>
+                    <input type="checkbox" id="show-flag-capitals" class="neo-switch" ${state.settings.showFlagInCapitals ? 'checked' : ''}>
+                </div>
+
+                <div class="setting-group flex-between">
+                    <label for="show-area-population">
+                        Mostrar Extensión en Población
+                        <span>(Muestra los km² para ayudar a comparar)</span>
+                    </label>
+                    <input type="checkbox" id="show-area-population" class="neo-switch" ${state.settings.showAreaInPopulation ? 'checked' : ''}>
+                </div>
+
                 <div class="settings-actions">
                     <button id="btn-save-settings" class="btn-primary btn-large">Guardar Cambios</button>
                     <button id="btn-cancel-settings" class="btn-secondary">Cancelar</button>
@@ -218,6 +240,8 @@ export const renderSettings = () => {
     const timeValue = document.getElementById('time-value');
     const streakInput = document.getElementById('streak-threshold');
     const streakValue = document.getElementById('streak-value');
+    const flagToggle = document.getElementById('show-flag-capitals');
+    const areaToggle = document.getElementById('show-area-population');
     
     livesInput.addEventListener('input', (e) => {
         livesValue.textContent = e.target.value;
@@ -235,10 +259,14 @@ export const renderSettings = () => {
         const newMaxLives = parseInt(livesInput.value);
         const newQuestionTime = parseInt(timeInput.value);
         const newStreakThreshold = parseInt(streakInput.value);
+        const newShowFlag = flagToggle.checked;
+        const newShowArea = areaToggle.checked;
         saveSettings({ 
             maxLives: newMaxLives,
             questionTime: newQuestionTime,
-            streakThreshold: newStreakThreshold
+            streakThreshold: newStreakThreshold,
+            showFlagInCapitals: newShowFlag,
+            showAreaInPopulation: newShowArea
         });
         renderMenu();
     });
@@ -271,7 +299,13 @@ export const renderGameOver = () => {
     `;
 
     document.getElementById('btn-restart').addEventListener('click', () => {
-        initFlagsGame();
+        if (state.gameMode === 'flags') {
+            initFlagsGame();
+        } else if (state.gameMode === 'capitals') {
+            initCapitalsGame();
+        } else if (state.gameMode === 'population') {
+            initPopulationGame();
+        }
     });
 
     document.getElementById('btn-back-menu').addEventListener('click', () => {
@@ -329,7 +363,16 @@ const handleTimeout = (correctCca3) => {
     buttons.forEach(b => b.disabled = true);
 
     // Ejecutar lógica de fallo por tiempo
-    const { correctCca3: correct, lifeRecovered } = handleAnswer(null);
+    let result;
+    if (state.gameMode === 'flags') {
+        result = handleFlagsAnswer(null);
+    } else if (state.gameMode === 'capitals') {
+        result = handleCapitalAnswer(null);
+    } else if (state.gameMode === 'population') {
+        result = handlePopulationAnswer(null);
+    }
+    
+    const { lifeRecovered } = result;
 
     // Feedback visual
     const livesDisplay = document.getElementById('lives-display');
@@ -342,8 +385,16 @@ const handleTimeout = (correctCca3) => {
     }
 
     // Mostrar cual era la correcta
-    const correctBtn = document.querySelector(`[data-cca3="${correct}"]`);
-    correctBtn?.classList.add('btn-correct');
+    if (state.gameMode === 'flags') {
+        const correctBtn = document.querySelector(`[data-cca3="${result.correctCca3}"]`);
+        correctBtn?.classList.add('btn-correct');
+    } else if (state.gameMode === 'capitals') {
+        const correctBtn = document.querySelector(`[data-id="${result.correctCapital}"]`);
+        correctBtn?.classList.add('btn-correct');
+    } else if (state.gameMode === 'population') {
+        const correctCard = document.querySelector(`[data-cca3="${result.correctCca3}"]`);
+        correctCard?.classList.add('card-correct');
+    }
 
     // Pausa y siguiente paso
     transitionTimeout = setTimeout(() => {
@@ -352,7 +403,9 @@ const handleTimeout = (correctCca3) => {
         if (state.lives <= 0) {
             renderGameOver();
         } else {
-            generateQuestion();
+            if (state.gameMode === 'flags') generateFlagsQuestion();
+            else if (state.gameMode === 'capitals') generateCapitalQuestion();
+            else if (state.gameMode === 'population') generatePopulationQuestion();
         }
     }, 2000);
 };
@@ -450,6 +503,188 @@ export const renderFlagQuestion = (target, options) => {
                     generateQuestion();
                 }
             }, 2000);
+        });
+    });
+};
+
+/**
+ * Renderiza una pregunta del juego de capitales
+ */
+export const renderCapitalQuestion = (target, options) => {
+    stopGameLogic();
+    const isIndefinite = state.settings.questionTime === 16;
+
+    app.innerHTML = `
+        <div class="game-container fade-in">
+            <div id="lives-display" class="lives-container">
+                ${renderLives()}
+            </div>
+
+            <div id="life-up-notification" class="life-up-container"></div>
+
+            ${!isIndefinite ? `
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            ` : ''}
+
+            <div class="capital-question-display">
+                <span class="country-name-badge">${target.nombreEs}</span>
+                ${state.settings.showFlagInCapitals ? `
+                    <div class="flag-display-container mini">
+                        <img src="${target.flags.svg}" alt="Bandera del país" class="flag-display">
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="options-grid">
+                ${options.map(country => `
+                    <button class="option-btn" data-id="${country.capital[0]}">
+                        ${country.capital[0]}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    if (!isIndefinite) startTimer(target.capital[0]);
+
+    const buttons = document.querySelectorAll('.option-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            buttons.forEach(b => b.disabled = true);
+            
+            const selectedCapital = btn.getAttribute('data-id');
+            const { isCorrect, correctCapital, lifeRecovered } = handleCapitalAnswer(selectedCapital);
+            
+            if (isCorrect) {
+                btn.classList.add('btn-correct');
+                if (lifeRecovered) {
+                    const livesDisplay = document.getElementById('lives-display');
+                    if (livesDisplay) {
+                        livesDisplay.innerHTML = renderLives();
+                        showLifeUpFeedback();
+                    }
+                }
+            } else {
+                btn.classList.add('btn-incorrect');
+                const livesDisplay = document.getElementById('lives-display');
+                if (livesDisplay) livesDisplay.innerHTML = renderLives();
+
+                const correctBtn = document.querySelector(`[data-id="${correctCapital}"]`);
+                correctBtn?.classList.add('btn-correct');
+            }
+
+            transitionTimeout = setTimeout(() => {
+                if (state.view !== 'game') return;
+                if (state.lives <= 0) renderGameOver();
+                else generateCapitalQuestion();
+            }, 2000);
+        });
+    });
+};
+
+/**
+ * Renderiza una pregunta del juego de población (comparación)
+ */
+export const renderPopulationQuestion = (options, winner) => {
+    stopGameLogic();
+    const isIndefinite = state.settings.questionTime === 16;
+
+    app.innerHTML = `
+        <div class="game-container fade-in">
+            <div id="lives-display" class="lives-container">
+                ${renderLives()}
+            </div>
+
+            <div id="life-up-notification" class="life-up-container"></div>
+
+            ${!isIndefinite ? `
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            ` : ''}
+
+            <h2 class="question-title">¿Cuál tiene más habitantes?</h2>
+            
+            <div class="comparison-grid">
+                ${options.map(country => `
+                    <div class="country-card-large" data-cca3="${country.cca3}">
+                        <div class="flag-wrapper">
+                            <img src="${country.flags.svg}" alt="Bandera de ${country.nombreEs}" class="flag-img">
+                        </div>
+                        <h3 class="country-name">${country.nombreEs}</h3>
+                        <div class="country-info">
+                            ${state.settings.showAreaInPopulation ? `
+                                <div class="info-badge">
+                                    <span class="label">Extensión:</span>
+                                    <span class="value">${country.area ? country.area.toLocaleString() : 'N/A'} km²</span>
+                                </div>
+                            ` : ''}
+                            <div class="info-badge">
+                                <span class="label">Continente:</span>
+                                <span class="value">${country.continents ? country.continents[0] : 'N/A'}</span>
+                            </div>
+                            <div class="info-badge">
+                                <span class="label">Subregión:</span>
+                                <span class="value">${country.subregion || 'N/A'}</span>
+                            </div>
+                        </div>
+                        <div class="population-reveal hidden">
+                            <span class="pop-number">${country.population.toLocaleString()}</span> habitantes
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    if (!isIndefinite) startTimer(winner.cca3);
+
+    const cards = document.querySelectorAll('.country-card-large');
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            cards.forEach(c => c.style.pointerEvents = 'none');
+            
+            const selectedCca3 = card.getAttribute('data-cca3');
+            const { isCorrect, correctCca3, lifeRecovered } = handlePopulationAnswer(selectedCca3);
+            
+            // Revelar poblaciones
+            document.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
+            
+            if (isCorrect) {
+                card.classList.add('card-correct');
+                if (lifeRecovered) {
+                    const livesDisplay = document.getElementById('lives-display');
+                    if (livesDisplay) {
+                        livesDisplay.innerHTML = renderLives();
+                        showLifeUpFeedback();
+                    }
+                }
+            } else {
+                card.classList.add('card-incorrect');
+                const livesDisplay = document.getElementById('lives-display');
+                if (livesDisplay) livesDisplay.innerHTML = renderLives();
+
+                const correctCard = document.querySelector(`[data-cca3="${correctCca3}"]`);
+                correctCard?.classList.add('card-correct');
+            }
+
+            transitionTimeout = setTimeout(() => {
+                if (state.view !== 'game') return;
+                if (state.lives <= 0) renderGameOver();
+                else generatePopulationQuestion();
+            }, 3000);
         });
     });
 };

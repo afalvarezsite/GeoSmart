@@ -5,7 +5,7 @@ const BASE_URL = 'https://restcountries.com/v3.1';
 
 export const fetchAllCountries = async () => {
     try {
-        const response = await fetch(`${BASE_URL}/all?fields=name,capital,flags,population,currencies,cca3,translations`);
+        const response = await fetch(`${BASE_URL}/all?fields=name,capital,flags,population,currencies,cca3,translations,area,continents,subregion`);
         if (!response.ok) throw new Error('Error al cargar datos');
         const data = await response.json();
         
