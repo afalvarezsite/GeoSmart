@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state, getFilteredCountries } from '../state.js';
 import { renderFlagQuestion } from '../ui.js';
 import { shuffle } from '../utils.js';
 
@@ -9,6 +9,7 @@ export const initFlagsGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
+    state.history = []; // Inicializar historial
     
     // Si no hay una pregunta pre-generada, la generamos ahora
     if (!state.currentQuestion) {
@@ -22,14 +23,30 @@ export const initFlagsGame = () => {
  * Genera una nueva pregunta
  */
 export const generateQuestion = (render = true) => {
-    if (state.countries.length < 4) return;
+    const countries = getFilteredCountries();
+    if (countries.length < 4) return;
 
-    const randomCountries = shuffle(state.countries).slice(0, 4);
-    const target = randomCountries[0];
+    let target;
+    let attempts = 0;
+    const MAX_HISTORY_ATTEMPTS = 20;
+
+    // Intentar obtener un país que no esté en el historial reciente
+    do {
+        const randomCountries = shuffle(countries).slice(0, 4);
+        target = randomCountries[0];
+        attempts++;
+    } while (state.history.includes(target.cca3) && attempts < MAX_HISTORY_ATTEMPTS && countries.length > state.history.length + 4);
+
+    // Guardar en el historial
+    state.history.push(target.cca3);
+    if (state.history.length > 50) state.history.shift();
+
+    // Obtener opciones (incluyendo al target)
+    const options = shuffle(shuffle(countries).filter(c => c.cca3 !== target.cca3).slice(0, 3).concat(target));
     
     state.currentQuestion = {
         target: target,
-        options: shuffle(randomCountries)
+        options: options
     };
 
     if (render) {

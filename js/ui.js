@@ -64,7 +64,21 @@ export const renderMenu = () => {
     app.innerHTML = `
         <div class="menu-container fade-in">
             <h2 class="menu-title">Selecciona tu Desafío</h2>
-            ${state.loading ? '<div class="loader inline">Cargando datos del mundo...</div>' : ''}
+            ${state.loading ? '<div class="loader inline">Cargando datos del mundo...</div>' : `
+                <div class="continent-filter-container">
+                    <div class="filter-title">
+                        <span>🌍</span> Filtrar por Continente
+                    </div>
+                    <div class="continents-grid">
+                        ${['África', 'Antártida', 'Asia', 'Europa', 'América del Norte', 'Oceanía', 'América del Sur'].map(cont => `
+                            <label class="continent-checkbox-group ${state.settings.selectedContinents.includes(cont) ? 'active' : ''}">
+                                <input type="checkbox" class="neo-switch mini continent-toggle" data-continent="${cont}" ${state.settings.selectedContinents.includes(cont) ? 'checked' : ''}>
+                                <span class="continent-label">${cont}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `}
             <div class="game-grid ${state.loading ? 'loading-overlay' : ''}">
                 <div class="game-card card-flags" data-mode="flags">
                     <div class="card-content">
@@ -100,6 +114,28 @@ export const renderMenu = () => {
 
     // Si aún está cargando, no añadimos listeners (o podríamos añadir uno que avise)
     if (state.loading) return;
+
+    // Listeners para los filtros de continente
+    const continentToggles = document.querySelectorAll('.continent-toggle');
+    continentToggles.forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+            const continent = e.target.getAttribute('data-continent');
+            const isChecked = e.target.checked;
+            
+            let currentSelected = [...state.settings.selectedContinents];
+            if (isChecked) {
+                if (!currentSelected.includes(continent)) currentSelected.push(continent);
+            } else {
+                currentSelected = currentSelected.filter(c => c !== continent);
+            }
+            
+            // Actualizar estado y feedback visual
+            saveSettings({ selectedContinents: currentSelected });
+            e.target.closest('.continent-checkbox-group').classList.toggle('active', isChecked);
+            
+            console.log('Continentes seleccionados:', state.settings.selectedContinents);
+        });
+    });
 
     // Añadir eventos a las tarjetas utilizando delegación para el grid
     const grid = document.querySelector('.game-grid');

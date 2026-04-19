@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state, getFilteredCountries } from '../state.js';
 import { renderPopulationQuestion } from '../ui.js';
 import { shuffle } from '../utils.js';
 
@@ -22,9 +22,10 @@ export const initPopulationGame = () => {
  * Genera una nueva pregunta (compara 2 países de similar extensión)
  */
 export const generatePopulationQuestion = (render = true) => {
-    if (state.countries.length < 2) return;
+    const countries = getFilteredCountries();
+    if (countries.length < 2) return;
 
-    const validCountries = state.countries
+    const validCountries = countries
         .filter(c => c.population !== undefined && c.area !== undefined)
         .sort((a, b) => a.area - b.area);
 
@@ -63,7 +64,7 @@ export const generatePopulationQuestion = (render = true) => {
     } while (state.history.includes(pairKey) && attempts < MAX_ATTEMPTS);
 
     state.history.push(pairKey);
-    if (state.history.length > 40) state.history.shift();
+    if (state.history.length > 50) state.history.shift();
     
     const pair = shuffle([countryA, countryB]);
     const winner = pair[0].population >= pair[1].population ? pair[0] : pair[1];

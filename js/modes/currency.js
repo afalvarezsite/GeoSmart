@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state, getFilteredCountries } from '../state.js';
 import { renderCurrencyQuestion } from '../ui.js';
 import { shuffle, translateCurrency, simplifyCurrency } from '../utils.js';
 
@@ -9,6 +9,7 @@ export const initCurrencyGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
+    state.history = []; // Inicializar historial
     
     if (!state.currentQuestion) {
         generateCurrencyQuestion(false);
@@ -21,10 +22,24 @@ export const initCurrencyGame = () => {
  * Genera una nueva pregunta de monedas
  */
 export const generateCurrencyQuestion = (render = true) => {
-    const validCountries = state.countries.filter(c => c.currencies && Object.keys(c.currencies).length > 0);
+    const countries = getFilteredCountries();
+    const validCountries = countries.filter(c => c.currencies && Object.keys(c.currencies).length > 0);
     if (validCountries.length < 4) return;
 
-    const target = shuffle(validCountries)[0];
+    let target;
+    let attempts = 0;
+    const MAX_HISTORY_ATTEMPTS = 20;
+
+    // Intentar obtener un país que no esté en el historial reciente
+    do {
+        target = shuffle(validCountries)[0];
+        attempts++;
+    } while (state.history.includes(target.cca3) && attempts < MAX_HISTORY_ATTEMPTS && validCountries.length > state.history.length + 4);
+
+    // Guardar en el historial
+    state.history.push(target.cca3);
+    if (state.history.length > 50) state.history.shift();
+
     const targetCurrency = getCurrencyString(target);
     const options = [target];
     const seenCurrencies = new Set([targetCurrency]);
@@ -40,8 +55,9 @@ export const generateCurrencyQuestion = (render = true) => {
     }
     
     if (options.length < 4) {
-        const fallback = shuffle(validCountries).slice(0, 4);
-        state.currentQuestion = { target: fallback[0], options: shuffle(fallback) };
+        // Fallback: si no hay suficientes monedas únicas, permitir repetidas (raro)
+        const fallback = shuffle(validCountries).filter(c => c.cca3 !== target.cca3).slice(0, 3);
+        state.currentQuestion = { target: target, options: shuffle([target, ...fallback]) };
     } else {
         state.currentQuestion = {
             target: target,

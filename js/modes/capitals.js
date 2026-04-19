@@ -1,4 +1,4 @@
-import { state } from '../state.js';
+import { state, getFilteredCountries } from '../state.js';
 import { renderCapitalQuestion } from '../ui.js';
 import { shuffle } from '../utils.js';
 
@@ -9,6 +9,7 @@ export const initCapitalsGame = () => {
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
+    state.history = []; // Inicializar historial
     
     if (!state.currentQuestion) {
         generateCapitalQuestion(false);
@@ -21,15 +22,31 @@ export const initCapitalsGame = () => {
  * Genera una nueva pregunta de capitales
  */
 export const generateCapitalQuestion = (render = true) => {
-    const validCountries = state.countries.filter(c => c.capital && c.capital.length > 0);
+    const countries = getFilteredCountries();
+    const validCountries = countries.filter(c => c.capital && c.capital.length > 0);
     if (validCountries.length < 4) return;
 
-    const randomCountries = shuffle(validCountries).slice(0, 4);
-    const target = randomCountries[0];
+    let target;
+    let attempts = 0;
+    const MAX_HISTORY_ATTEMPTS = 20;
+
+    // Intentar obtener un país que no esté en el historial reciente
+    do {
+        const randomCountries = shuffle(validCountries).slice(0, 4);
+        target = randomCountries[0];
+        attempts++;
+    } while (state.history.includes(target.cca3) && attempts < MAX_HISTORY_ATTEMPTS && validCountries.length > state.history.length + 4);
+
+    // Guardar en el historial
+    state.history.push(target.cca3);
+    if (state.history.length > 50) state.history.shift();
+
+    // Obtener opciones (incluyendo al target)
+    const options = shuffle(shuffle(validCountries).filter(c => c.cca3 !== target.cca3).slice(0, 3).concat(target));
     
     state.currentQuestion = {
         target: target,
-        options: shuffle(randomCountries)
+        options: options
     };
 
     if (render) {

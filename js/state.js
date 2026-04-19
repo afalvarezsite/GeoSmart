@@ -6,7 +6,8 @@ export const DEFAULT_SETTINGS = {
     showAreaInPopulation: false,
     showGDPInPopulation: false,
     showFlagInCurrency: true,
-    showDetailsInCurrency: true
+    showDetailsInCurrency: true,
+    selectedContinents: ['África', 'Antártida', 'Asia', 'Europa', 'América del Norte', 'Oceanía', 'América del Sur']
 };
 
 export const state = {
@@ -61,4 +62,16 @@ export const resetState = () => {
     state.lives = state.settings.maxLives; // Iniciamos con el máximo configurado
     state.history = [];
     state.currentQuestion = null;
+};
+
+/**
+ * Retorna la lista de países filtrada según los continentes seleccionados
+ */
+export const getFilteredCountries = () => {
+    const selected = state.settings.selectedContinents;
+    if (!selected || selected.length === 0) return state.countries;
+    
+    return state.countries.filter(country => 
+        country.continentesEs && country.continentesEs.some(c => selected.includes(c))
+    );
 };

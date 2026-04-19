@@ -12,7 +12,9 @@ Thumbs.db
 assets/*.tmp
 *.bak
 
-# Documentación interna del asistente
-# implementation_plan.md
-# task.md
-# walkthrough.md
+# Documentación interna
+implementation_plan.md
+task.md
+walkthrough.md
+proyect.md
+ideas.md
