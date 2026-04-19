@@ -7,12 +7,20 @@ export const DEFAULT_SETTINGS = {
     showGDPInPopulation: false,
     showFlagInCurrency: true,
     showDetailsInCurrency: true,
+    showPopulationInArea: false,
+    showGDPInArea: false,
+    showPopulationInFlags: false,
+    showGDPInFlags: false,
+    showPopulationInCapitals: false,
+    showGDPInCapitals: false,
+    showPopulationInCurrency: false,
+    showGDPInCurrency: false,
     selectedContinents: ['África', 'Antártida', 'Asia', 'Europa', 'América del Norte', 'Oceanía', 'América del Sur']
 };
 
 export const state = {
     view: 'menu', // 'menu', 'game', 'results', 'settings'
-    gameMode: null, // 'flags', 'capitals', 'population', 'currency'
+    gameMode: null, // 'flags', 'capitals', 'population', 'currency', 'area'
     score: 0,
     lives: 0,
     streak: 0,

@@ -132,6 +132,7 @@
 .card-capitals { background-image: url('../assets/capitals_bg.webp'); }
 .card-population { background-image: url('../assets/population_bg.webp'); }
 .card-currency { background-image: url('../assets/currency_bg.webp'); }
+.card-area { background-image: url('../assets/area_bg.webp'); }
 
 /* Botones y Navegación */
 .nav-buttons {

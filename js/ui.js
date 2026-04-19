@@ -4,6 +4,7 @@ import { initFlagsGame, handleAnswer as handleFlagsAnswer, generateQuestion as g
 import { initCapitalsGame, handleCapitalAnswer, generateCapitalQuestion } from './modes/capitals.js';
 import { initPopulationGame, handlePopulationAnswer, generatePopulationQuestion } from './modes/population.js';
 import { initCurrencyGame, handleCurrencyAnswer, generateCurrencyQuestion, getCurrencyString } from './modes/currency.js';
+import { initAreaGame, handleAreaAnswer, generateAreaQuestion } from './modes/area.js';
 
 const app = document.getElementById('app');
 let timerInterval = null;
@@ -108,6 +109,13 @@ export const renderMenu = () => {
                         <span class="btn-play">Jugar Ahora</span>
                     </div>
                 </div>
+                <div class="game-card card-area" data-mode="area">
+                    <div class="card-content">
+                        <h2>País más Extenso</h2>
+                        <p>¿Quién ocupa más espacio en el mapa? Compara territorios por su superficie física.</p>
+                        <span class="btn-play">Jugar Ahora</span>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -155,7 +163,7 @@ const startGame = (mode) => {
     console.log(`Iniciando juego: ${mode}`);
     state.gameMode = mode;
     
-    if (mode === 'flags' || mode === 'capitals' || mode === 'population' || mode === 'currency') {
+    if (mode === 'flags' || mode === 'capitals' || mode === 'population' || mode === 'currency' || mode === 'area') {
         renderCountdown(mode);
         return;
     }
@@ -206,6 +214,7 @@ const renderCountdown = (mode) => {
     else if (mode === 'capitals') generateCapitalQuestion(false);
     else if (mode === 'population') generatePopulationQuestion(false);
     else if (mode === 'currency') generateCurrencyQuestion(false);
+    else if (mode === 'area') generateAreaQuestion(false);
 
     // Pre-cargar banderas de la primera pregunta
     if (state.currentQuestion) {
@@ -242,6 +251,7 @@ const renderCountdown = (mode) => {
             else if (mode === 'capitals') initCapitalsGame();
             else if (mode === 'population') initPopulationGame();
             else if (mode === 'currency') initCurrencyGame();
+            else if (mode === 'area') initAreaGame();
         }
     }, 1000);
 };
@@ -312,6 +322,24 @@ export const renderSettings = () => {
                 </div>
 
                 <div class="settings-section">
+                    <h3 class="settings-section-title">Modo Banderas</h3>
+                    <div class="setting-group flex-between">
+                        <label for="show-pop-flags">
+                            Mostrar Población en Banderas
+                            <span>(Pista de habitantes para el país correcto)</span>
+                        </label>
+                        <input type="checkbox" id="show-pop-flags" class="neo-switch" ${state.settings.showPopulationInFlags ? 'checked' : ''}>
+                    </div>
+                    <div class="setting-group flex-between">
+                        <label for="show-gdp-flags">
+                            Mostrar PIB en Banderas
+                            <span>(Pista económica para el país correcto)</span>
+                        </label>
+                        <input type="checkbox" id="show-gdp-flags" class="neo-switch" ${state.settings.showGDPInFlags ? 'checked' : ''}>
+                    </div>
+                </div>
+
+                <div class="settings-section">
                     <h3 class="settings-section-title">Modo Capitales</h3>
                     <div class="setting-group flex-between">
                         <label for="show-flag-capitals">
@@ -319,6 +347,20 @@ export const renderSettings = () => {
                             <span>(Ayuda visual adicional para identificar el país)</span>
                         </label>
                         <input type="checkbox" id="show-flag-capitals" class="neo-switch" ${state.settings.showFlagInCapitals ? 'checked' : ''}>
+                    </div>
+                    <div class="setting-group flex-between">
+                        <label for="show-pop-capitals">
+                            Mostrar Población en Capitales
+                            <span>(Pista de habitantes)</span>
+                        </label>
+                        <input type="checkbox" id="show-pop-capitals" class="neo-switch" ${state.settings.showPopulationInCapitals ? 'checked' : ''}>
+                    </div>
+                    <div class="setting-group flex-between">
+                        <label for="show-gdp-capitals">
+                            Mostrar PIB en Capitales
+                            <span>(Pista económica)</span>
+                        </label>
+                        <input type="checkbox" id="show-gdp-capitals" class="neo-switch" ${state.settings.showGDPInCapitals ? 'checked' : ''}>
                     </div>
                 </div>
 
@@ -358,6 +400,39 @@ export const renderSettings = () => {
                         </label>
                         <input type="checkbox" id="show-details-currency" class="neo-switch" ${state.settings.showDetailsInCurrency ? 'checked' : ''}>
                     </div>
+                    <div class="setting-group flex-between">
+                        <label for="show-pop-currency">
+                            Mostrar Población en Monedas
+                            <span>(Pista de habitantes)</span>
+                        </label>
+                        <input type="checkbox" id="show-pop-currency" class="neo-switch" ${state.settings.showPopulationInCurrency ? 'checked' : ''}>
+                    </div>
+                    <div class="setting-group flex-between">
+                        <label for="show-gdp-currency">
+                            Mostrar PIB en Monedas
+                            <span>(Pista económica)</span>
+                        </label>
+                        <input type="checkbox" id="show-gdp-currency" class="neo-switch" ${state.settings.showGDPInCurrency ? 'checked' : ''}>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Modo Extensión</h3>
+                    <div class="setting-group flex-between">
+                        <label for="show-population-area">
+                            Mostrar Población en Extensión
+                            <span>(Compara habitantes mientras ves el tamaño)</span>
+                        </label>
+                        <input type="checkbox" id="show-population-area" class="neo-switch" ${state.settings.showPopulationInArea ? 'checked' : ''}>
+                    </div>
+
+                    <div class="setting-group flex-between">
+                        <label for="show-gdp-area">
+                            Mostrar PIB en Extensión
+                            <span>(Información económica adicional)</span>
+                        </label>
+                        <input type="checkbox" id="show-gdp-area" class="neo-switch" ${state.settings.showGDPInArea ? 'checked' : ''}>
+                    </div>
                 </div>
 
                 <div class="settings-actions">
@@ -380,6 +455,16 @@ export const renderSettings = () => {
     const gdpToggle = document.getElementById('show-gdp-population');
     const flagCurrToggle = document.getElementById('show-flag-currency');
     const detailsCurrToggle = document.getElementById('show-details-currency');
+    const popAreaToggle = document.getElementById('show-population-area');
+    const gdpAreaToggle = document.getElementById('show-gdp-area');
+    
+    // Nuevos toggles de pistas
+    const popFlagToggle = document.getElementById('show-pop-flags');
+    const gdpFlagToggle = document.getElementById('show-gdp-flags');
+    const popCapToggle = document.getElementById('show-pop-capitals');
+    const gdpCapToggle = document.getElementById('show-gdp-capitals');
+    const popCurrToggle = document.getElementById('show-pop-currency');
+    const gdpCurrToggle = document.getElementById('show-gdp-currency');
     
     livesInput.addEventListener('input', (e) => {
         livesValue.textContent = e.target.value;
@@ -408,7 +493,15 @@ export const renderSettings = () => {
             showAreaInPopulation: newShowArea,
             showGDPInPopulation: newShowGDP,
             showFlagInCurrency: flagCurrToggle.checked,
-            showDetailsInCurrency: detailsCurrToggle.checked
+            showDetailsInCurrency: detailsCurrToggle.checked,
+            showPopulationInArea: popAreaToggle.checked,
+            showGDPInArea: gdpAreaToggle.checked,
+            showPopulationInFlags: popFlagToggle.checked,
+            showGDPInFlags: gdpFlagToggle.checked,
+            showPopulationInCapitals: popCapToggle.checked,
+            showGDPInCapitals: gdpCapToggle.checked,
+            showPopulationInCurrency: popCurrToggle.checked,
+            showGDPInCurrency: gdpCurrToggle.checked
         });
         renderMenu();
     });
@@ -456,6 +549,8 @@ export const renderGameOver = () => {
             initPopulationGame();
         } else if (state.gameMode === 'currency') {
             initCurrencyGame();
+        } else if (state.gameMode === 'area') {
+            initAreaGame();
         }
     });
 
@@ -539,6 +634,8 @@ const handleTimeout = (correctCca3) => {
         result = handlePopulationAnswer(null);
     } else if (state.gameMode === 'currency') {
         result = handleCurrencyAnswer(null);
+    } else if (state.gameMode === 'area') {
+        result = handleAreaAnswer(null);
     }
     
     const { lifeRecovered } = result;
@@ -566,6 +663,9 @@ const handleTimeout = (correctCca3) => {
     } else if (state.gameMode === 'currency') {
         const correctBtn = document.querySelector(`[data-id="${result.correctCurrency}"]`);
         correctBtn?.classList.add('btn-correct');
+    } else if (state.gameMode === 'area') {
+        const correctCard = document.querySelector(`[data-cca3="${result.correctCca3}"]`);
+        correctCard?.classList.add('card-correct');
     }
 
     // Pausa y siguiente paso
@@ -579,6 +679,7 @@ const handleTimeout = (correctCca3) => {
             else if (state.gameMode === 'capitals') generateCapitalQuestion();
             else if (state.gameMode === 'population') generatePopulationQuestion();
             else if (state.gameMode === 'currency') generateCurrencyQuestion();
+            else if (state.gameMode === 'area') generateAreaQuestion();
         }
     }, 2000);
 };
@@ -612,6 +713,13 @@ export const renderFlagQuestion = (target, options) => {
             <div class="flag-display-container">
                 <img src="${target.flags.svg}" alt="Bandera a adivinar" class="flag-display">
             </div>
+
+            ${(state.settings.showPopulationInFlags || state.settings.showGDPInFlags) ? `
+                <div class="country-hints-row">
+                    ${state.settings.showPopulationInFlags ? `<div class="info-badge"><span class="label">Población:</span> <span class="value">${target.population.toLocaleString()}</span></div>` : ''}
+                    ${state.settings.showGDPInFlags ? `<div class="info-badge"><span class="label">PIB:</span> <span class="value">${formatCurrency(target.pib)}</span></div>` : ''}
+                </div>
+            ` : ''}
             
             <div class="options-grid" id="options-grid">
                 ${options.map(country => `
@@ -714,6 +822,13 @@ export const renderCapitalQuestion = (target, options) => {
                     </div>
                 ` : ''}
             </div>
+
+            ${(state.settings.showPopulationInCapitals || state.settings.showGDPInCapitals) ? `
+                <div class="country-hints-row">
+                    ${state.settings.showPopulationInCapitals ? `<div class="info-badge"><span class="label">Población:</span> <span class="value">${target.population.toLocaleString()}</span></div>` : ''}
+                    ${state.settings.showGDPInCapitals ? `<div class="info-badge"><span class="label">PIB:</span> <span class="value">${formatCurrency(target.pib)}</span></div>` : ''}
+                </div>
+            ` : ''}
             
             <div class="options-grid" id="options-grid">
                 ${options.map(country => `
@@ -899,6 +1014,126 @@ export const renderPopulationQuestion = (options, winner) => {
 };
 
 /**
+ * Renderiza una pregunta del juego de extensión (Área)
+ */
+export const renderAreaQuestion = (options, winner) => {
+    stopGameLogic();
+    const isIndefinite = state.settings.questionTime === 16;
+    
+    // Pre-cargar ambas banderas
+    options.forEach(opt => preloadFlag(opt.flags.svg));
+
+    app.innerHTML = `
+        <div class="game-container fade-in">
+            <div id="lives-display" class="lives-container">
+                ${renderLives()}
+            </div>
+
+            <div id="life-up-notification" class="life-up-container"></div>
+
+            ${!isIndefinite ? `
+                <div class="timer-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+            ` : ''}
+
+            <h2 class="question-title">¿Cuál es más extenso?</h2>
+            
+            <div class="comparison-grid" id="comparison-grid">
+                ${options.map(country => `
+                    <div class="country-card-large" data-cca3="${country.cca3}">
+                        <div class="flag-wrapper">
+                            <img src="${country.flags.svg}" alt="Bandera de ${country.nombreEs}" class="flag-img">
+                        </div>
+                        <h3 class="country-name">${country.nombreEs}</h3>
+                        <div class="country-info">
+                            <div class="info-badge">
+                                <span class="label">Continente:</span>
+                                <span class="value">${country.continentesEs ? country.continentesEs[0] : 'N/A'}</span>
+                            </div>
+                            <div class="info-badge">
+                                <span class="label">Subregión:</span>
+                                <span class="value">${country.subregionEs || 'N/A'}</span>
+                            </div>
+                            ${state.settings.showPopulationInArea ? `
+                                <div class="info-badge">
+                                    <span class="label">Población:</span>
+                                    <span class="value">${country.population ? country.population.toLocaleString() : 'N/A'} hab.</span>
+                                </div>
+                            ` : ''}
+                            ${state.settings.showGDPInArea ? `
+                            <div class="info-badge">
+                                <span class="label">PIB:</span>
+                                <span class="value">${formatCurrency(country.pib)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="population-reveal hidden">
+                            <span class="pop-number">${country.area ? country.area.toLocaleString() : 'N/A'}</span> km²
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    if (!isIndefinite) startTimer(winner.cca3);
+
+    const grid = document.getElementById('comparison-grid');
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.country-card-large');
+        if (!card || isTransitioning) return;
+
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        isTransitioning = true;
+        const cards = grid.querySelectorAll('.country-card-large');
+        cards.forEach(c => c.style.pointerEvents = 'none');
+        
+        const selectedCca3 = card.getAttribute('data-cca3');
+        const { isCorrect, correctCca3, lifeRecovered } = handleAreaAnswer(selectedCca3);
+        
+        // Revelar áreas (reutilizamos la clase population-reveal para los estilos)
+        grid.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
+        
+        if (isCorrect) {
+            card.classList.add('card-correct');
+            if (lifeRecovered) {
+                const livesDisplay = document.getElementById('lives-display');
+                if (livesDisplay) {
+                    livesDisplay.innerHTML = renderLives();
+                    showLifeUpFeedback();
+                }
+            }
+        } else {
+            card.classList.add('card-incorrect');
+            const livesDisplay = document.getElementById('lives-display');
+            if (livesDisplay) livesDisplay.innerHTML = renderLives();
+
+            const correctCard = grid.querySelector(`[data-cca3="${correctCca3}"]`);
+            correctCard?.classList.add('card-correct');
+        }
+
+        transitionTimeout = setTimeout(() => {
+            if (state.view !== 'game') return;
+            if (state.lives <= 0) renderGameOver();
+            else generateAreaQuestion();
+        }, 3000);
+
+        // Pre-generar siguiente pregunta
+        if (state.lives > 0) {
+            generateAreaQuestion(false);
+            if (state.currentQuestion?.options) {
+                state.currentQuestion.options.forEach(opt => preloadFlag(opt.flags.svg));
+            }
+        }
+    });
+};
+
+/**
  * Renderiza una pregunta del juego de monedas
  */
 export const renderCurrencyQuestion = (target, options) => {
@@ -933,6 +1168,13 @@ export const renderCurrencyQuestion = (target, options) => {
                     <div class="country-details-row">
                         <span class="detail-badge">${target.continentesEs[0]}</span>
                         <span class="detail-badge">${target.subregionEs}</span>
+                    </div>
+                ` : ''}
+
+                ${(state.settings.showPopulationInCurrency || state.settings.showGDPInCurrency) ? `
+                    <div class="country-hints-row justify-center">
+                        ${state.settings.showPopulationInCurrency ? `<div class="info-badge mini"><span class="label">Pop:</span> <span class="value">${target.population.toLocaleString()}</span></div>` : ''}
+                        ${state.settings.showGDPInCurrency ? `<div class="info-badge mini"><span class="label">PIB:</span> <span class="value">${formatCurrency(target.pib)}</span></div>` : ''}
                     </div>
                 ` : ''}
                 
