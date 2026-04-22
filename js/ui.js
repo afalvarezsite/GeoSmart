@@ -52,7 +52,7 @@ export const renderError = (message) => {
  */
 export const renderMenu = () => {
     stopGameLogic();
-    
+
     // Si hay un error crítico guardado, lo mostramos
     if (state.error) {
         renderError(state.error);
@@ -61,7 +61,7 @@ export const renderMenu = () => {
 
     // Asegurar que la barra de estadísticas esté oculta en el menú
     document.getElementById('stats-bar')?.classList.add('hidden');
-    
+
     app.innerHTML = `
         <div class="menu-container fade-in">
             <h2 class="menu-title">Selecciona tu Desafío</h2>
@@ -129,18 +129,18 @@ export const renderMenu = () => {
         toggle.addEventListener('change', (e) => {
             const continent = e.target.getAttribute('data-continent');
             const isChecked = e.target.checked;
-            
+
             let currentSelected = [...state.settings.selectedContinents];
             if (isChecked) {
                 if (!currentSelected.includes(continent)) currentSelected.push(continent);
             } else {
                 currentSelected = currentSelected.filter(c => c !== continent);
             }
-            
+
             // Actualizar estado y feedback visual
             saveSettings({ selectedContinents: currentSelected });
             e.target.closest('.continent-checkbox-group').classList.toggle('active', isChecked);
-            
+
             console.log('Continentes seleccionados:', state.settings.selectedContinents);
         });
     });
@@ -162,14 +162,14 @@ export const renderMenu = () => {
 const startGame = (mode) => {
     console.log(`Iniciando juego: ${mode}`);
     state.gameMode = mode;
-    
+
     if (mode === 'flags' || mode === 'capitals' || mode === 'population' || mode === 'currency' || mode === 'area') {
         renderCountdown(mode);
         return;
     }
 
     state.view = 'game';
-    
+
     // Mostrar barra de estadísticas
     document.getElementById('stats-bar')?.classList.remove('hidden');
     const scoreEl = document.getElementById('player-score');
@@ -198,7 +198,7 @@ const renderCountdown = (mode) => {
     document.getElementById('stats-bar')?.classList.add('hidden');
 
     let count = 3;
-    
+
     app.innerHTML = `
         <div class="countdown-container fade-in">
             <div id="countdown-val" class="countdown-number">${count}</div>
@@ -227,7 +227,7 @@ const renderCountdown = (mode) => {
 
     transitionTimeout = setInterval(() => {
         count--;
-        
+
         if (state.view !== 'countdown') {
             stopGameLogic();
             return;
@@ -240,11 +240,11 @@ const renderCountdown = (mode) => {
             if (countdownText) countdownText.textContent = '¡Es tu turno!';
         } else {
             stopGameLogic();
-            
+
             document.getElementById('stats-bar')?.classList.remove('hidden');
             const scoreEl = document.getElementById('player-score');
             if (scoreEl) scoreEl.textContent = `Puntos: ${state.score}`;
-            
+
             state.view = 'game';
 
             if (mode === 'flags') initFlagsGame();
@@ -457,7 +457,7 @@ export const renderSettings = () => {
     const detailsCurrToggle = document.getElementById('show-details-currency');
     const popAreaToggle = document.getElementById('show-population-area');
     const gdpAreaToggle = document.getElementById('show-gdp-area');
-    
+
     // Nuevos toggles de pistas
     const popFlagToggle = document.getElementById('show-pop-flags');
     const gdpFlagToggle = document.getElementById('show-gdp-flags');
@@ -465,7 +465,7 @@ export const renderSettings = () => {
     const gdpCapToggle = document.getElementById('show-gdp-capitals');
     const popCurrToggle = document.getElementById('show-pop-currency');
     const gdpCurrToggle = document.getElementById('show-gdp-currency');
-    
+
     livesInput.addEventListener('input', (e) => {
         livesValue.textContent = e.target.value;
     });
@@ -485,7 +485,7 @@ export const renderSettings = () => {
         const newShowFlag = flagToggle.checked;
         const newShowArea = areaToggle.checked;
         const newShowGDP = gdpToggle.checked;
-        saveSettings({ 
+        saveSettings({
             maxLives: newMaxLives,
             questionTime: newQuestionTime,
             streakThreshold: newStreakThreshold,
@@ -525,7 +525,7 @@ export const renderGameOver = () => {
     state.view = 'results';
     // Ocultar barra de estadísticas en el game over para limpieza visual
     document.getElementById('stats-bar')?.classList.add('hidden');
-    
+
     app.innerHTML = `
         <div class="game-container fade-in text-center">
             <h2 class="game-over-title">¡Desafío Terminado!</h2>
@@ -585,10 +585,10 @@ const startTimer = (correctCca3) => {
     timerInterval = setInterval(() => {
         timeLeft -= intervalTime;
         const percentage = (timeLeft / totalTime) * 100;
-        
+
         if (timerBar) {
             timerBar.style.width = `${percentage}%`;
-            
+
             // Cambiar color según el tiempo restante
             if (percentage > 60) {
                 timerBar.style.background = 'linear-gradient(to right, #10b981, #059669)'; // Verde
@@ -637,14 +637,14 @@ const handleTimeout = (correctCca3) => {
     } else if (state.gameMode === 'area') {
         result = handleAreaAnswer(null);
     }
-    
+
     const { lifeRecovered } = result;
 
     // Feedback visual
     const livesDisplay = document.getElementById('lives-display');
     if (livesDisplay) {
         livesDisplay.innerHTML = renderLives();
-        
+
         if (lifeRecovered) {
             showLifeUpFeedback();
         }
@@ -671,7 +671,7 @@ const handleTimeout = (correctCca3) => {
     // Pausa y siguiente paso
     transitionTimeout = setTimeout(() => {
         if (state.view !== 'game') return; // Seguridad extra
-        
+
         if (state.lives <= 0) {
             renderGameOver();
         } else {
@@ -692,7 +692,7 @@ export const renderFlagQuestion = (target, options) => {
     stopGameLogic();
 
     const isIndefinite = state.settings.questionTime === 16;
-    
+
     // Pre-cargar bandera actual
     preloadFlag(target.flags.svg);
 
@@ -740,7 +740,7 @@ export const renderFlagQuestion = (target, options) => {
     grid.addEventListener('click', (e) => {
         const btn = e.target.closest('.option-btn');
         if (!btn || isTransitioning) return;
-        
+
         // Detener temporizador inmediatamente al responder
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -748,18 +748,18 @@ export const renderFlagQuestion = (target, options) => {
         }
 
         isTransitioning = true;
-        
+
         // Desactiva todos los botones después del click
         const buttons = grid.querySelectorAll('.option-btn');
         buttons.forEach(b => b.disabled = true);
-        
+
         const selectedCca3 = btn.getAttribute('data-cca3');
         const { isCorrect, correctCca3, lifeRecovered } = handleFlagsAnswer(selectedCca3);
-        
+
         // Feedback visual
         if (isCorrect) {
             btn.classList.add('btn-correct');
-            
+
             if (lifeRecovered) {
                 const livesDisplay = document.getElementById('lives-display');
                 if (livesDisplay) {
@@ -855,10 +855,10 @@ export const renderCapitalQuestion = (target, options) => {
         isTransitioning = true;
         const buttons = grid.querySelectorAll('.option-btn');
         buttons.forEach(b => b.disabled = true);
-        
+
         const selectedCapital = btn.getAttribute('data-id');
         const { isCorrect, correctCapital, lifeRecovered } = handleCapitalAnswer(selectedCapital);
-        
+
         if (isCorrect) {
             btn.classList.add('btn-correct');
             if (lifeRecovered) {
@@ -899,7 +899,7 @@ export const renderCapitalQuestion = (target, options) => {
 export const renderPopulationQuestion = (options, winner) => {
     stopGameLogic();
     const isIndefinite = state.settings.questionTime === 16;
-    
+
     // Pre-cargar ambas banderas
     options.forEach(opt => preloadFlag(opt.flags.svg));
 
@@ -972,13 +972,13 @@ export const renderPopulationQuestion = (options, winner) => {
         isTransitioning = true;
         const cards = grid.querySelectorAll('.country-card-large');
         cards.forEach(c => c.style.pointerEvents = 'none');
-        
+
         const selectedCca3 = card.getAttribute('data-cca3');
         const { isCorrect, correctCca3, lifeRecovered } = handlePopulationAnswer(selectedCca3);
-        
+
         // Revelar poblaciones
         grid.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
-        
+
         if (isCorrect) {
             card.classList.add('card-correct');
             if (lifeRecovered) {
@@ -1019,7 +1019,7 @@ export const renderPopulationQuestion = (options, winner) => {
 export const renderAreaQuestion = (options, winner) => {
     stopGameLogic();
     const isIndefinite = state.settings.questionTime === 16;
-    
+
     // Pre-cargar ambas banderas
     options.forEach(opt => preloadFlag(opt.flags.svg));
 
@@ -1092,13 +1092,13 @@ export const renderAreaQuestion = (options, winner) => {
         isTransitioning = true;
         const cards = grid.querySelectorAll('.country-card-large');
         cards.forEach(c => c.style.pointerEvents = 'none');
-        
+
         const selectedCca3 = card.getAttribute('data-cca3');
         const { isCorrect, correctCca3, lifeRecovered } = handleAreaAnswer(selectedCca3);
-        
+
         // Revelar áreas (reutilizamos la clase population-reveal para los estilos)
         grid.querySelectorAll('.population-reveal').forEach(el => el.classList.remove('hidden'));
-        
+
         if (isCorrect) {
             card.classList.add('card-correct');
             if (lifeRecovered) {
@@ -1183,13 +1183,13 @@ export const renderCurrencyQuestion = (target, options) => {
             
             <div class="options-grid" id="options-grid">
                 ${options.map(country => {
-                    const currencyStr = getCurrencyString(country);
-                    return `
+        const currencyStr = getCurrencyString(country);
+        return `
                         <button class="option-btn" data-id="${currencyStr}">
                             ${currencyStr}
                         </button>
                     `;
-                }).join('')}
+    }).join('')}
             </div>
         </div>
     `;
@@ -1209,10 +1209,10 @@ export const renderCurrencyQuestion = (target, options) => {
         isTransitioning = true;
         const buttons = grid.querySelectorAll('.option-btn');
         buttons.forEach(b => b.disabled = true);
-        
+
         const selectedCurrency = btn.getAttribute('data-id');
         const { isCorrect, correctCurrency, lifeRecovered } = handleCurrencyAnswer(selectedCurrency);
-        
+
         if (isCorrect) {
             btn.classList.add('btn-correct');
             if (lifeRecovered) {
@@ -1260,9 +1260,9 @@ const showLifeUpFeedback = () => {
         <img src="assets/pixel_heart.svg" class="mini-heart">
         <span>+1 VIDA</span>
     `;
-    
+
     container.appendChild(el);
-    
+
     // Limpiar el elemento después de la animación
     setTimeout(() => {
         el.remove();

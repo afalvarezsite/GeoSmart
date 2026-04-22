@@ -31,7 +31,8 @@
     background-size: cover;
     background-position: center;
     transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-    border: none; /* Eliminamos el borde por completo */
+    border: none;
+    /* Eliminamos el borde por completo */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
@@ -42,10 +43,11 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, 
-        rgba(0, 0, 0, 0.95) 0%, 
-        rgba(0, 0, 0, 0.7) 50%, 
-        rgba(0, 0, 0, 0.4) 100%); /* Más oscuro arriba */
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 0.95) 0%,
+            rgba(0, 0, 0, 0.7) 50%,
+            rgba(0, 0, 0, 0.4) 100%);
+    /* Más oscuro arriba */
     z-index: 1;
     transition: all 0.6s ease;
 }
@@ -56,10 +58,10 @@
 }
 
 .game-card:hover::before {
-    background: linear-gradient(to top, 
-        rgba(79, 70, 229, 0.95) 0%, 
-        rgba(79, 70, 229, 0.7) 60%, 
-        rgba(0, 0, 0, 0.5) 100%);
+    background: linear-gradient(to top,
+            rgba(79, 70, 229, 0.95) 0%,
+            rgba(79, 70, 229, 0.7) 60%,
+            rgba(0, 0, 0, 0.5) 100%);
 }
 
 .card-content {
@@ -128,11 +130,25 @@
 }
 
 /* Imágenes de fondo de tarjetas */
-.card-flags { background-image: url('../assets/flags_bg.webp'); }
-.card-capitals { background-image: url('../assets/capitals_bg.webp'); }
-.card-population { background-image: url('../assets/population_bg.webp'); }
-.card-currency { background-image: url('../assets/currency_bg.webp'); }
-.card-area { background-image: url('../assets/area_bg.webp'); }
+.card-flags {
+    background-image: url('../assets/flags_bg.webp');
+}
+
+.card-capitals {
+    background-image: url('../assets/capitals_bg.webp');
+}
+
+.card-population {
+    background-image: url('../assets/population_bg.webp');
+}
+
+.card-currency {
+    background-image: url('../assets/currency_bg.webp');
+}
+
+.card-area {
+    background-image: url('../assets/area_bg.webp');
+}
 
 /* Botones y Navegación */
 .nav-buttons {
@@ -224,7 +240,8 @@
     border: 4px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
     padding: 1rem;
-    flex-shrink: 1; /* Permite que se encoja */
+    flex-shrink: 1;
+    /* Permite que se encoja */
 }
 
 /* Vidas (Corazones) */
@@ -247,8 +264,17 @@
 }
 
 @keyframes pulse-heart {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.8; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
 }
 
 .life-heart.empty {
@@ -310,9 +336,19 @@
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 /* Pantalla de Resultados / Game Over */
@@ -360,17 +396,19 @@
     font-size: 1.2rem;
 }
 
-.text-center { text-align: center; }
+.text-center {
+    text-align: center;
+}
 
 @media (max-width: 600px) {
     .options-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .final-score {
         font-size: 4rem;
     }
-    
+
     .results-actions {
         flex-direction: column;
     }
@@ -381,28 +419,28 @@
     .main-header {
         padding: 0.5rem 1.5rem;
     }
-    
+
     .logo h1 {
         font-size: 1.2rem;
     }
-    
+
     .menu-title {
         margin: 0.75rem auto 0;
     }
-    
+
     .game-grid {
         margin: 0.75rem auto;
         gap: 0.75rem;
     }
-    
+
     .game-card {
         height: min(250px, 35vh);
     }
-    
+
     .card-content {
         padding: 1rem;
     }
-    
+
     #app {
         padding: 0.5rem;
     }
@@ -426,9 +464,10 @@
 
 @media (max-height: 600px) {
     .main-footer {
-        display: none; /* Ocultar footer en pantallas muy pequeñas para ganar espacio */
+        display: none;
+        /* Ocultar footer en pantallas muy pequeñas para ganar espacio */
     }
-    
+
     .lives-container {
         margin-bottom: 0.5rem;
     }
@@ -437,7 +476,7 @@
         width: 30px;
         height: 30px;
     }
-    
+
     .timer-container {
         margin-bottom: 1rem;
         height: 8px;
@@ -631,9 +670,20 @@
 }
 
 @keyframes countdown-pulse {
-    0% { transform: scale(0.5); opacity: 0; }
-    30% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); opacity: 0; }
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    30% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
 }
 
 /* Notificación de Recuperación de Vida */
@@ -668,9 +718,20 @@
 }
 
 @keyframes life-up-float {
-    0% { transform: translateY(0) scale(0.8); opacity: 0; }
-    20% { transform: translateY(-20px) scale(1.1); opacity: 1; }
-    100% { transform: translateY(-60px) scale(1); opacity: 0; }
+    0% {
+        transform: translateY(0) scale(0.8);
+        opacity: 0;
+    }
+
+    20% {
+        transform: translateY(-20px) scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-60px) scale(1);
+        opacity: 0;
+    }
 }
 
 /* Modo Capitales */
@@ -695,7 +756,7 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
     text-align: center;
     color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .flag-display-container.mini {
@@ -771,7 +832,7 @@
     text-align: center;
     margin-bottom: 2rem;
     color: var(--text-white);
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .comparison-grid {
@@ -795,7 +856,7 @@
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 .country-card-large:hover {
@@ -813,8 +874,8 @@
     align-items: center;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    background: rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.2);
     border: 2px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -847,10 +908,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.5rem; /* Espacio entre etiqueta y valor */
+    gap: 1.5rem;
+    /* Espacio entre etiqueta y valor */
     font-size: 0.95rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 180px; /* Asegura que no se vean demasiado comprimidos */
+    min-width: 180px;
+    /* Asegura que no se vean demasiado comprimidos */
 }
 
 .country-hints-row {
@@ -922,16 +985,16 @@
         gap: 1.5rem;
         padding: 0 1rem;
     }
-    
+
     .country-card-large {
         padding: 1.5rem;
     }
-    
+
     .flag-wrapper {
         width: 220px;
         height: 140px;
     }
-    
+
     .country-name {
         font-size: 1.8rem;
     }

@@ -13,10 +13,10 @@ const fetchGDPData = async () => {
         const response = await fetch(WORLD_BANK_URL);
         if (!response.ok) return {};
         const data = await response.json();
-        
+
         // El Banco Mundial devuelve [metadata, [array_de_datos]]
         if (!Array.isArray(data) || data.length < 2) return {};
-        
+
         const gdpMap = {};
         data[1].forEach(item => {
             if (item.countryiso3code && item.value) {
@@ -40,7 +40,7 @@ export const fetchAllCountries = async () => {
 
         if (!countriesResponse.ok) throw new Error('Error al cargar datos de países');
         const data = await countriesResponse.json();
-        
+
         // Mapeamos para simplificar el acceso y añadir el PIB
         return data.map(country => ({
             ...country,
