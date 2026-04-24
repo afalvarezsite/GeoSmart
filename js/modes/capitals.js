@@ -6,6 +6,7 @@ import { shuffle } from '../utils.js';
  * Inicializa el juego de capitales
  */
 export const initCapitalsGame = () => {
+    state.view = 'game';
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;

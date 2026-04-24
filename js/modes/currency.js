@@ -6,6 +6,7 @@ import { shuffle, translateCurrency, simplifyCurrency } from '../utils.js';
  * Inicializa el juego de monedas
  */
 export const initCurrencyGame = () => {
+    state.view = 'game';
     state.score = 0;
     state.streak = 0;
     state.lives = state.settings.maxLives;
