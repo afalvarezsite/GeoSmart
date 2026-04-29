@@ -176,15 +176,24 @@
     display: flex; 
     overflow-x: auto; 
     gap: 0.75rem; 
-    padding-bottom: 0.5rem; 
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
+    padding-bottom: 0.8rem; 
     -webkit-overflow-scrolling: touch; 
 } 
  
 .continents-grid::-webkit-scrollbar { 
-    display: none; 
+    height: 3px;
+    display: block;
 } 
+
+.continents-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.continents-grid::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
  
 .continent-checkbox-group { 
     display: flex; 
