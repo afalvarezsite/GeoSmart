@@ -1293,16 +1293,4 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMenu();
         });
     }
-
-    const btnExit = document.getElementById('btn-exit');
-    if (btnExit) {
-        btnExit.addEventListener('click', () => {
-            if (confirm('¿Estás seguro de que deseas salir?')) {
-                window.close();
-                // O simplemente volver al menú si window.close no está permitido
-                state.view = 'menu';
-                renderMenu();
-            }
-        });
-    }
 });
