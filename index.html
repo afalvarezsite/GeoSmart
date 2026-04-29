@@ -37,6 +37,20 @@
     </footer>
 
     <!-- Scripts -->
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            const app = document.getElementById('app');
+            if (app) {
+                app.innerHTML = '<div style="padding: 2rem; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 1rem; border: 1px solid #ef4444;">' +
+                    '<h3>Error de ejecución</h3>' +
+                    '<p>' + msg + '</p>' +
+                    '<p><small>' + url + ' (Línea ' + lineNo + ')</small></p>' +
+                    '<button onclick="location.reload()" class="btn-primary" style="margin-top: 1rem;">Recargar</button>' +
+                    '</div>';
+            }
+            return false;
+        };
+    </script>
     <script type="module" src="js/main.js"></script>
 </body>
 

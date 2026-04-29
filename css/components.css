@@ -1,15 +1,14 @@
 /* Grid de Juegos */
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
     width: 100%;
     max-width: 1200px;
-    margin: 1rem auto;
+    margin: 1.5rem auto;
     padding: 0 1rem;
     flex: 1;
     overflow-y: auto;
-    /* El grid de selección sí puede tener scroll si hay muchos juegos */
 }
 
 .menu-title {
@@ -1007,6 +1006,47 @@
 }
 
 @media (max-width: 600px) {
+    .menu-title {
+        font-size: 1.8rem;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .game-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 1.5rem 2rem;
+    }
+
+    .game-card {
+        height: 260px !important;
+        border-radius: 1.5rem;
+    }
+
+    .card-content {
+        padding: 1.5rem;
+        transform: translateY(0);
+    }
+
+    .game-card h2 {
+        font-size: 1.4rem;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .game-card p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .btn-play {
+        opacity: 1;
+        transform: translateY(0);
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+    }
+
     .comparison-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
@@ -1043,6 +1083,42 @@
 
     .pop-number {
         font-size: 1.2rem;
+    }
+
+    /* Filtro de Continentes Compacto */
+    .continent-filter-container {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+        border-radius: 1rem;
+    }
+
+    .filter-title {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .continents-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.5rem;
+        padding-bottom: 0.4rem;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .continents-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .continent-checkbox-group {
+        flex-shrink: 0;
+        padding: 0.35rem 0.7rem;
+        border-radius: 0.6rem;
+    }
+
+    .continent-label {
+        font-size: 0.8rem;
+        white-space: nowrap;
     }
 }
 
@@ -1128,8 +1204,8 @@
 
 .continents-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
 }
 
 .continent-checkbox-group {

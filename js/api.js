@@ -8,9 +8,9 @@ const WORLD_BANK_URL = 'https://api.worldbank.org/v2/country/all/indicator/NY.GD
 /**
  * Obtiene el PIB de los países desde el Banco Mundial
  */
-const fetchGDPData = async () => {
+const fetchGDPData = async (signal) => {
     try {
-        const response = await fetch(WORLD_BANK_URL);
+        const response = await fetch(WORLD_BANK_URL, { signal });
         if (!response.ok) return {};
         const data = await response.json();
 
@@ -31,26 +31,34 @@ const fetchGDPData = async () => {
 };
 
 export const fetchAllCountries = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de timeout
+
     try {
         // Ejecutamos ambas peticiones en paralelo para optimizar tiempo
         const [countriesResponse, gdpMap] = await Promise.all([
-            fetch(`${BASE_URL}/all?fields=name,capital,flags,population,currencies,cca3,translations,area,continents,subregion`),
-            fetchGDPData()
+            fetch(`${BASE_URL}/all?fields=name,capital,flags,population,currencies,cca3,translations,area,continents,subregion`, { signal: controller.signal }),
+            fetchGDPData(controller.signal)
         ]);
+
+        clearTimeout(timeoutId);
 
         if (!countriesResponse.ok) throw new Error('Error al cargar datos de países');
         const data = await countriesResponse.json();
 
+        if (!Array.isArray(data)) throw new Error('Los datos recibidos no tienen el formato esperado');
+
         // Mapeamos para simplificar el acceso y añadir el PIB
         return data.map(country => ({
             ...country,
-            nombreEs: country.translations?.spa?.common || country.name.common,
+            nombreEs: country.translations?.spa?.common || country.name?.common || 'País desconocido',
             continentesEs: country.continents?.map(c => translateGeo(c)) || [],
             subregionEs: translateGeo(country.subregion),
             pib: gdpMap[country.cca3] || null
         }));
     } catch (error) {
+        clearTimeout(timeoutId);
         console.error('API Error:', error);
-        throw error; // Rethrow to let the UI/Main handle it
+        throw error;
     }
 };

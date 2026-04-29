@@ -80,6 +80,20 @@ body {
     color: var(--primary);
 }
 
+@media (max-width: 600px) {
+    .main-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .logo h1 {
+        font-size: 1.4rem;
+    }
+    
+    .nav-buttons {
+        gap: 0.5rem;
+    }
+}
+
 .main-footer {
     padding: 1rem;
     text-align: center;
